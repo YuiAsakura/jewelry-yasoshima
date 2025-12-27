@@ -11,5 +11,6 @@
 //app.mount('#app')
 import { createApp } from 'vue'
 import App from './App.vue' // ここでApp.vueを読み込んでいます
+import './style.css'
 
 createApp(App).mount('#app')
