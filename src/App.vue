@@ -1,26 +1,27 @@
 <script setup>
 import { ref, computed, onUnmounted } from 'vue'
 
+// --- 画面遷移管理 ---
 const currentScreen = ref('title')
 const selectedBase = ref('')
 const selectedAdditive = ref('')
 
-// --- スピードメーター用データ ---
+// --- プレイ用データ ---
 const currentSpeed = ref(0)
 const successTime = ref(0)
 const timeLeft = ref(10)
 let gameInterval = null
 
-// --- 宝石データ ---
+// --- 宝石の難易度・設定テーブル ---
 const gemTable = {
-  'ダイヤモンド': { range: [8, 12], difficulty: '上級', desc: 'グラファイトを鉄などの触媒に溶解して生成' },
-  'アメジスト': { range: [5, 8], difficulty: '中級', desc: '鉄イオンを着色剤として育成' },
-  '水晶': { range: [5, 8], difficulty: '中級', desc: '350度1000Paの条件下で結晶を育成' },
-  'ルビー': { range: [2, 5], difficulty: '初級', desc: '2000度以上の高温で再結晶' },
-  'サファイア': { range: [2, 5], difficulty: '初級', desc: '2000度の火炎で結晶を成長' }
+  'ダイヤモンド': { range: [9, 11], difficulty: '上級', decay: 0.4, desc: 'グラファイトを鉄などの触媒に溶解して生成' },
+  'アメジスト': { range: [6, 8], difficulty: '中級', decay: 0.3, desc: '鉄イオンを着色剤として育成' },
+  '水晶': { range: [6, 8], difficulty: '中級', decay: 0.3, desc: '350度1000Paの条件下で結晶を育成' },
+  'ルビー': { range: [2, 5], difficulty: '初級', decay: 0.2, desc: '2000度以上の高温で再結晶' },
+  'サファイア': { range: [2, 5], difficulty: '初級', decay: 0.2, desc: '2000度の火炎で結晶を成長' }
 }
 
-// 宝石名を判定する関数（これを結果画面で直接使います）
+// 宝石名を判定
 const getGemName = () => {
   if (selectedBase.value === 'C' && selectedAdditive.value === 'Fe') return 'ダイヤモンド'
   if (selectedBase.value === 'SiO2' && selectedAdditive.value === 'Fe') return 'アメジスト'
@@ -30,13 +31,13 @@ const getGemName = () => {
   return '謎の石'
 }
 
-// 現在の宝石のデータを取得
+// 現在の宝石データを取得
 const currentGemData = computed(() => {
   const name = getGemName()
-  return gemTable[name] || { range: [0, 0], difficulty: '不明', desc: '' }
+  return gemTable[name] || { range: [0, 0], difficulty: '不明', decay: 0.2, desc: '' }
 })
 
-// --- ゲームロジック ---
+// --- ゲーム進行ロジック ---
 const startProcess = () => {
   currentScreen.value = 'process'
   currentSpeed.value = 0
@@ -44,13 +45,11 @@ const startProcess = () => {
   timeLeft.value = 10
 
   gameInterval = setInterval(() => {
-    if (currentSpeed.value > 0) currentSpeed.value -= 0.2
-    
-    const range = currentGemData.value.range
-    if (currentSpeed.value >= range[0] && currentSpeed.value <= range[1]) {
+    const data = currentGemData.value
+    if (currentSpeed.value > 0) currentSpeed.value -= data.decay
+    if (currentSpeed.value >= data.range[0] && currentSpeed.value <= data.range[1]) {
       successTime.value += 0.1
     }
-
     timeLeft.value -= 0.1
     if (timeLeft.value <= 0) {
       clearInterval(gameInterval)
@@ -61,15 +60,15 @@ const startProcess = () => {
 
 const addRotation = () => {
   if (currentScreen.value === 'process') {
-    currentSpeed.value += 1.2
+    currentSpeed.value += 1.0
   }
 }
 
 const getQuality = () => {
-  if (successTime.value >= 8) return { rank: '極上 (S)', color: 'gold' }
-  if (successTime.value >= 5) return { rank: '良質 (A)', color: 'silver' }
-  if (successTime.value >= 2) return { rank: '並 (B)', color: '#cd7f32' }
-  return { rank: '失敗 (C)', color: 'gray' }
+  if (successTime.value >= 8.0) return { rank: '極上 (S)', color: '#FFD700', text: '完璧な職人技です！' }
+  if (successTime.value >= 5.0) return { rank: '良質 (A)', color: '#C0C0C0', text: '素晴らしい出来栄えです。' }
+  if (successTime.value >= 2.0) return { rank: '並 (B)', color: '#CD7F32', text: 'まずまずの品質です。' }
+  return { rank: '失敗 (C)', color: '#808080', text: '生成に失敗しました…' }
 }
 
 const resetGame = () => {
@@ -85,7 +84,7 @@ onUnmounted(() => clearInterval(gameInterval))
   <div id="game-app">
     <div v-if="currentScreen === 'title'" class="page">
       <h1 class="gold-text">ジュエリーヤソシマ</h1>
-      <button class="main-btn" @click="currentScreen = 'select'">ゲーム開始</button>
+      <button class="main-btn" @click="currentScreen = 'select'">開始する</button>
     </div>
 
     <div v-if="currentScreen === 'select'" class="page">
@@ -97,7 +96,7 @@ onUnmounted(() => clearInterval(gameInterval))
           {{ b }}
         </button>
       </div>
-      <div class="section" v-if="selectedBase">
+      <div v-if="selectedBase" class="section">
         <h3>2. 添加物</h3>
         <button v-for="a in ['Fe', 'Cr2O3']" :key="a"
                 :disabled="!( (selectedBase==='C' && a==='Fe') || (selectedBase==='Al2O3') || (selectedBase==='SiO2' && a==='Fe') )"
@@ -111,7 +110,7 @@ onUnmounted(() => clearInterval(gameInterval))
     </div>
 
     <div v-if="currentScreen === 'process'" class="page" @mousedown="addRotation">
-      <h2>回転速度を維持せよ！</h2>
+      <h2>速度を維持せよ！</h2>
       <div class="gauge-container">
         <div class="target-zone" :style="{ 
           left: (currentGemData.range[0] * 5) + '%', 
@@ -119,32 +118,55 @@ onUnmounted(() => clearInterval(gameInterval))
         }"></div>
         <div class="speed-bar" :style="{ width: (currentSpeed * 5) + '%' }"></div>
       </div>
-      <div class="timer">残り: {{ timeLeft.toFixed(1) }}s</div>
+      <div class="timer">TIME: {{ timeLeft.toFixed(1) }}s</div>
+      <p>緑の枠内にバーを維持してください</p>
     </div>
 
     <div v-if="currentScreen === 'result'" class="page">
-      <h1 :style="{ color: getQuality().color }">{{ getQuality().rank }}</h1>
-      <hr>
-      <h2>完成：{{ getGemName() }}</h2>
-      <p>{{ currentGemData.desc }}</p>
-      <div class="detail">
-        <p>成功維持時間: {{ successTime.toFixed(1) }}秒</p>
+      <h2 class="result-gem-name">【完成】{{ getGemName() }}</h2>
+      
+      <hr class="divider">
+
+      <div class="quality-section">
+        <h1 :style="{ color: getQuality().color }" class="rank-text">{{ getQuality().rank }}</h1>
+        <p class="quality-comment">{{ getQuality().text }}</p>
+      </div>
+
+      <p class="desc">{{ currentGemData.desc }}</p>
+
+      <div class="detail-box">
         <p>素材: {{ selectedBase }} + {{ selectedAdditive || 'なし' }}</p>
       </div>
+
       <button class="main-btn" @click="resetGame">タイトルへ</button>
     </div>
   </div>
 </template>
 
 <style scoped>
-#game-app { text-align: center; padding: 20px; font-family: 'Georgia', serif; background-color: #fdfaf0; min-height: 100vh; }
-.page { border: 3px solid #d4af37; padding: 20px; border-radius: 15px; max-width: 450px; margin: auto; background: white; }
-.gold-text { color: #d4af37; }
-.gauge-container { height: 40px; background: #eee; position: relative; margin: 20px 0; border-radius: 20px; overflow: hidden; border: 1px solid #ccc; }
-.target-zone { position: absolute; height: 100%; background: rgba(0, 255, 0, 0.4); border-left: 2px solid green; border-right: 2px solid green; }
-.speed-bar { height: 100%; background: linear-gradient(to right, #f1c40f, #d4af37); transition: width 0.1s linear; }
-.active { background: #d4af37; color: white; border-color: #b8860b; }
-.timer { font-size: 2.5rem; color: #e63946; font-weight: bold; }
-.main-btn, .next-btn { background: #d4af37; color: white; padding: 12px 25px; border: none; border-radius: 25px; cursor: pointer; font-size: 1.1rem; margin-top: 20px; }
-.detail { background: #f9f9f9; padding: 10px; border-radius: 10px; margin: 15px 0; font-size: 0.9rem; }
+#game-app { text-align: center; padding: 20px; font-family: serif; background-color: #1a1a1a; color: #eee; min-height: 100vh; }
+.page { border: 2px solid #d4af37; padding: 30px; border-radius: 10px; max-width: 450px; margin: auto; background: #2a2a2a; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+.gold-text { color: #d4af37; font-size: 2.5rem; }
+
+/* ゲージ設定 */
+.gauge-container { height: 40px; background: #111; position: relative; margin: 30px 0; border-radius: 5px; overflow: hidden; border: 1px solid #444; }
+.target-zone { position: absolute; height: 100%; background: rgba(0, 255, 100, 0.4); border-left: 2px solid #0f0; border-right: 2px solid #0f0; z-index: 1; }
+.speed-bar { height: 100%; background: linear-gradient(to right, #f1c40f, #d4af37); transition: width 0.1s linear; z-index: 2; }
+
+/* タイマー */
+.timer { font-size: 3rem; color: #ff4444; font-family: monospace; }
+
+/* 結果画面のスタイル */
+.result-gem-name { font-size: 2rem; color: #fff; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+.divider { border: 0; border-top: 1px solid #555; margin: 20px 0; }
+.rank-text { font-size: 3.5rem; margin: 10px 0; font-weight: bold; }
+.quality-comment { font-size: 1.2rem; margin-bottom: 20px; }
+.desc { font-style: italic; color: #ccc; line-height: 1.4; margin: 15px 0; }
+.detail-box { background: #333; padding: 10px; border-radius: 5px; font-size: 0.9rem; color: #bbb; }
+
+/* ボタン設定 */
+.active { background: #d4af37; color: #000; font-weight: bold; }
+.main-btn, .next-btn { background: #444; color: #d4af37; border: 1px solid #d4af37; padding: 12px 30px; border-radius: 25px; cursor: pointer; margin-top: 20px; font-size: 1rem; transition: 0.2s; }
+.main-btn:hover, .next-btn:hover { background: #d4af37; color: #000; }
+button:disabled { opacity: 0.2; cursor: not-allowed; }
 </style>
