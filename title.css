@@ -1,0 +1,99 @@
+/* 基本設定 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #333; /* 外側は暗く */
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+}
+
+/* 16:9 コンテナ */
+.screen-container {
+    position: relative;
+    width: 100vw;
+    height: 56.25vw; /* 16:9比率 */
+    max-width: 1280px;
+    max-height: 720px;
+    background: linear-gradient(180deg, #a5d8ff 0%, #4dabf7 50%, #1971c2 100%); /* 青色のグラデーション */
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+/* 背景のキラキラ */
+.gem-bg::after {
+    content: "✦";
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    color: white;
+    font-size: 1.5rem;
+    opacity: 0.8;
+}
+
+.content {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+/* タイトルの装飾（白文字＋青の縁取り） */
+.title {
+    font-size: 4.5rem;
+    color: #fff;
+    margin-top: -20px;
+    margin-bottom: 30px;
+    letter-spacing: 0.05em;
+    /* 画像のような青い縁取り効果 */
+    text-shadow: 
+        3px 3px 0 #339af0,
+        -3px -3px 0 #339af0,
+        3px -3px 0 #339af0,
+        -3px 3px 0 #339af0,
+        0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+/* 宝石イラスト（中央配置） */
+.main-gem {
+    width: 250px;
+    height: auto;
+    filter: drop-shadow(0 0 20px rgba(255,255,255,0.6));
+}
+
+/* 「つくる」ボタン（赤色グラデーション） */
+.create-button {
+    background: linear-gradient(to bottom, #ff6b6b 0%, #e03131 100%);
+    color: white;
+    padding: 12px 60px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    border: 2px solid #fff;
+    border-radius: 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: transform 0.1s, filter 0.2s;
+}
+
+.create-button:hover {
+    filter: brightness(1.1);
+    transform: scale(1.05);
+}
+
+.create-button:active {
+    transform: scale(0.98);
+}
+
+.arrow {
+    font-size: 1.2rem;
+    margin-left: 10px;
+}
