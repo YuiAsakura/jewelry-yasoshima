@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>パレット</title>
+    <link rel="stylesheet" href="palette.css">
+</head>
+<body>
+    <div class="screen-container">
+        <div class="header-controls">
+            <button class="sub-btn" onclick="showTable()">元素記号表</button>
+            <button class="sub-btn" onclick="showHint()">ヒント</button>
+        </div>
+
+        <div class="main-content">
+            <div class="preview-frame">
+                <div id="slot1" class="gem-slot">?</div>
+                <div class="plus-text">+</div>
+                <div id="slot2" class="gem-slot">?</div>
+            </div>
+
+            <div class="palette-center">
+                <div id="row1" class="palette-group">
+                    <div class="step-label">① 原料を選択</div>
+                    <div class="btn-list">
+                        <button class="block-btn" onclick="selectItem(1, 'C')">C</button>
+                        <button class="block-btn" onclick="selectItem(1, 'Al2O3')">Al2O3</button>
+                        <button class="block-btn" onclick="selectItem(1, 'SiO2')">SiO2</button>
+                    </div>
+                </div>
+
+                <div id="row2" class="palette-group disabled">
+                    <div class="step-label">② 触媒・発色要素を選択</div>
+                    <div class="btn-list">
+                        <button class="block-btn" onclick="selectItem(2, 'Fe')">Fe</button>
+                        <button class="block-btn" onclick="selectItem(2, 'Cr2O3')">Cr2O3</button>
+                        <button class="block-btn none-btn" onclick="selectItem(2, 'なし')">なし</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <button id="decide-btn" class="main-action-btn" disabled onclick="checkCombination()">つくる！</button>
+        </div>
+    </div>
+    <script src="palette.js"></script>
+</body>
+</html>

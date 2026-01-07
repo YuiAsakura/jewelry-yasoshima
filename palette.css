@@ -1,0 +1,152 @@
+body {
+    margin: 0;
+    background-color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: sans-serif;
+}
+
+.screen-container {
+    width: 100vw;
+    height: 56.25vw; /* 16:9比率 */
+    max-width: 1280px;
+    max-height: 720px;
+    background: radial-gradient(circle, #4dabf7 0%, #1864ab 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.header-controls {
+    display: flex;
+    justify-content: flex-end; 
+    gap: 25px; /*元素記号表とヒントの間の隙間*/
+    padding-right: 70px; /* 数字を大きくするほど、元素記号表とヒントの四角が左へ移動 */
+}
+
+.sub-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid white;
+    font-size: 1.2rem; /* 文字の大きさ */
+    padding: 5px 15px; /* ボタンの余白 */
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* 中央のメインエリア */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 45px;
+}
+
+/* 薄い四角の枠 */
+.preview-frame {
+    width: 400px;
+    height: 180px;
+    background: rgba(255, 255, 255, 0.15); /* 薄い四角 */
+    border: 2px solid white;
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+}
+
+.gem-slot {
+    width: 90px;
+    height: 90px;
+    background: white;
+    border-radius: 50%;
+    color: #1864ab;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(255,255,255,0.4);
+}
+
+.plus-text {
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* 中央ボタンエリア */
+.palette-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+.palette-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: 0.3s;
+}
+
+.palette-group.disabled {
+    opacity: 0.2; /* 2をグレーアウト */ 
+    pointer-events: none;
+}
+
+.step-label {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.btn-list {
+    display: flex;
+    gap: 12px;
+}
+
+.block-btn {
+    width: 100px;
+    height: 50px;
+    border: none;
+    border-radius: 8px;
+    background: white;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #bdc3c7;
+}
+
+.block-btn:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    margin-bottom: 50px; /* 数字を大きくするほどつくるボタンが上にあがる */
+}
+
+.main-action-btn {
+    background: linear-gradient(to bottom, #ff6b6b, #e03131);
+    color: white;
+    padding: 10px 80px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    border: 3px solid white;
+    border-radius: 40px;
+    cursor: pointer;
+}
+
+.main-action-btn:disabled {
+    filter: grayscale(1);
+}
