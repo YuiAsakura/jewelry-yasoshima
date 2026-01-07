@@ -2,10 +2,16 @@
 import { ref, computed, onUnmounted } from 'vue'
 import './style.css' // 相方のデザインを読み込む
 
-// --- プログラム（ロジック） ---
+// --- 画面遷移管理 ---
 const currentScreen = ref('title')
 const selectedBase = ref('')
 const selectedAdditive = ref('')
+
+// --- カウントダウン用データ ---
+const countdownValue = ref(3)
+let countdownInterval = null
+
+// --- プレイ用データ ---
 const currentSpeed = ref(0)
 const successTime = ref(0)
 const timeLeft = ref(10)
@@ -33,26 +39,52 @@ const currentGemData = computed(() => {
   return gemTable[name] || { range: [0, 0], difficulty: '不明', decay: 0.2 }
 })
 
-const startProcess = () => {
+// --- 1. カウントダウン開始ロジック ---
+const startCountdown = () => {
+  currentScreen.value = 'countdown'
+  countdownValue.value = 3
+  
+  countdownInterval = setInterval(() => {
+    countdownValue.value--
+    if (countdownValue.value === 0) {
+      clearInterval(countdownInterval)
+      runGame() // 0になったらゲーム本番開始
+    }
+  }, 1000)
+}
+
+// --- 2. ゲーム本番開始ロジック ---
+const runGame = () => {
   currentScreen.value = 'process'
   currentSpeed.value = 0; successTime.value = 0; timeLeft.value = 10
+  
   gameInterval = setInterval(() => {
     const data = currentGemData.value
     if (currentSpeed.value > 0) currentSpeed.value -= data.decay
     if (currentSpeed.value >= data.range[0] && currentSpeed.value <= data.range[1]) successTime.value += 0.1
     timeLeft.value -= 0.1
-    if (timeLeft.value <= 0) { clearInterval(gameInterval); currentScreen.value = 'result' }
+    if (timeLeft.value <= 0) { 
+      clearInterval(gameInterval)
+      currentScreen.value = 'result' 
+    }
   }, 100)
 }
 
 const addRotation = () => { if (currentScreen.value === 'process') currentSpeed.value += 1.0 }
+
 const getQuality = () => {
   if (successTime.value >= 8.0) return { rank: '極上 (S)', color: 'gold' }
   if (successTime.value >= 5.0) return { rank: '良質 (A)', color: 'silver' }
   return { rank: '並 (B)', color: '#cd7f32' }
 }
+
 const resetGame = () => { currentScreen.value = 'title'; selectedBase.value = ''; selectedAdditive.value = '' }
-onUnmounted(() => clearInterval(gameInterval))
+
+// 後片付け（メモリリーク防止）
+onUnmounted(() => {
+  clearInterval(gameInterval)
+  clearInterval(countdownInterval)
+})
 </script>
 
 <template>
@@ -72,7 +104,12 @@ onUnmounted(() => clearInterval(gameInterval))
                 :disabled="!( (selectedBase==='C' && a==='Fe') || (selectedBase==='Al2O3') || (selectedBase==='SiO2' && a==='Fe') )"
                 :class="{ active: selectedAdditive === a }" @click="selectedAdditive = a">{{ a }}</button>
       </div>
-      <button v-if="selectedBase==='SiO2' || selectedAdditive" class="next-btn" @click="startProcess">生成開始</button>
+      <button v-if="selectedBase==='SiO2' || selectedAdditive" class="next-btn" @click="startCountdown">生成開始</button>
+    </div>
+
+    <div v-if="currentScreen === 'countdown'" class="page countdown-screen">
+      <p class="countdown-label">準備はいいか？</p>
+      <h1 class="countdown-number">{{ countdownValue }}</h1>
     </div>
 
     <div v-if="currentScreen === 'process'" class="page" @mousedown="addRotation">
@@ -92,22 +129,12 @@ onUnmounted(() => clearInterval(gameInterval))
 </template>
 
 <style scoped>
-/* あなたがテストするために必要な最低限の「動くパーツ」の見た目 */
-.gauge-container {
-  height: 30px;
-  background: #eee;
-  position: relative;
-  margin: 20px 0;
-  border: 1px solid #000;
-}
-.target-zone {
-  position: absolute;
-  height: 100%;
-  background: rgba(0, 255, 0, 0.5); /* 成功エリア */
-}
-.speed-bar {
-  height: 100%;
-  background: blue; /* 現在の速度バー */
-  width: 0%;
-}
+/* 最低限のゲージとカウントダウンの見た目 */
+.gauge-container { height: 30px; background: #eee; position: relative; margin: 20px 0; border: 1px solid #000; }
+.target-zone { position: absolute; height: 100%; background: rgba(0, 255, 0, 0.5); }
+.speed-bar { height: 100%; background: blue; width: 0%; transition: width 0.1s linear; }
+
+/* カウントダウンの文字を見えやすく */
+.countdown-number { font-size: 5rem; margin: 20px 0; color: #ff4444; }
+.countdown-label { font-size: 1.2rem; }
 </style>
