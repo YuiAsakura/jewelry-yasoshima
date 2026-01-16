@@ -2,58 +2,103 @@
 import { ref, computed, onUnmounted } from 'vue'
 import './style.css'
 
+// --- 基本状態 ---
 const currentScreen = ref('title') 
 const selectedBase = ref(null)
 const selectedAdditive = ref(null)
 const countdownValue = ref(3)
-const currentSpeed = ref(0)
+const currentSpeed = ref(0) // Javaから取得した数値が入る場所
 const successTime = ref(0)
 const timeLeft = ref(10)
 let gameInterval = null
 let countdownInterval = null
 
+// Javaのコードにあった接続先
+const SERVER_URL = "http://10.22.243.89:5000/power"
+
 const recipes = [
-  { m1: 'C',     m2: 'Fe',    name: 'ダイヤモンド', range: [9, 11], decay: 0.4, desc: '炭素を鉄触媒で結晶化' },
-  { m1: 'Al2O3', m2: 'Cr2O3', name: 'ルビー',       range: [2, 5],  decay: 0.2, desc: '酸化クロムで赤く発色' },
-  { m1: 'Al2O3', m2: 'Fe',    name: 'サファイア',   range: [2, 5],  decay: 0.2, desc: '鉄分で深く青い輝きに' },
-  { m1: 'SiO2',  m2: 'Fe',    name: 'アメジスト',   range: [6, 8],  decay: 0.3, desc: '二酸化ケイ素に鉄が反応' },
-  { m1: 'SiO2',  m2: 'なし',   name: '水晶',         range: [6, 8],  decay: 0.3, desc: '純粋な二酸化ケイ素の結晶' }
+  { m1: 'C',     m2: 'Fe',    name: 'ダイヤモンド', range: [9, 11], decay: 0.4 },
+  { m1: 'Al2O3', m2: 'Cr2O3', name: 'ルビー',       range: [2, 5],  decay: 0.2 },
+  { m1: 'Al2O3', m2: 'Fe',    name: 'サファイア',   range: [2, 5],  decay: 0.2 },
+  { m1: 'SiO2',  m2: 'Fe',    name: 'アメジスト',   range: [6, 8],  decay: 0.3 },
+  { m1: 'SiO2',  m2: 'なし',   name: '水晶',         range: [6, 8],  decay: 0.3 }
 ]
 
 const currentRecipe = computed(() => recipes.find(r => r.m1 === selectedBase.value && r.m2 === selectedAdditive.value) || null)
 const canCreate = computed(() => currentRecipe.value !== null)
 
+// --- Javaロジックの移植: ラズパイからデータを取得 ---
+const fetchPowerData = async () => {
+  try {
+    const response = await fetch(SERVER_URL)
+    if (response.ok) {
+      const data = await response.json()
+      // JSONの "speed" プロパティを currentSpeed に反映
+      // Javaの System.out.println("Power Data: " + response.body()) に相当
+      currentSpeed.value = data.speed 
+    } else {
+      console.error("HTTP Error: " + response.status)
+    }
+  } catch (e) {
+    console.error("Error fetching power data: " + e.message)
+  }
+}
+
+// --- カウントダウン ---
 const startCountdown = () => {
   currentScreen.value = 'countdown'
   countdownValue.value = 3
   countdownInterval = setInterval(() => {
     countdownValue.value--
-    if (countdownValue.value === 0) {
+    if (countdownValue.value <= 0) {
       clearInterval(countdownInterval)
       runGame()
     }
   }, 1000)
 }
 
+// --- ゲーム実行 (Javaの continuousFetch に相当) ---
 const runGame = () => {
   currentScreen.value = 'process'
-  currentSpeed.value = 0; successTime.value = 0; timeLeft.value = 10
-  gameInterval = setInterval(() => {
+  currentSpeed.value = 0
+  successTime.value = 0
+  timeLeft.value = 10
+
+  if (gameInterval) clearInterval(gameInterval)
+
+  gameInterval = setInterval(async () => {
+    // 1. ラズパイからデータを取得 (Javaの fetchPowerData)
+    await fetchPowerData()
+
+    // 2. 成功判定
     const data = currentRecipe.value
-    if (currentSpeed.value > 0) currentSpeed.value -= data.decay
-    if (currentSpeed.value >= data.range[0] && currentSpeed.value <= data.range[1]) successTime.value += 0.1
-    timeLeft.value -= 0.1
-    if (timeLeft.value <= 0) { clearInterval(gameInterval); currentScreen.value = 'result' }
-  }, 100)
+    if (data && currentSpeed.value >= data.range[0] && currentSpeed.value <= data.range[1]) {
+      successTime.value += 0.1
+    }
+
+    // 3. タイマー更新
+    timeLeft.value = Math.max(0, timeLeft.value - 0.1)
+
+    // 4. 終了判定
+    if (timeLeft.value <= 0) {
+      clearInterval(gameInterval)
+      currentScreen.value = 'result'
+    }
+  }, 100) // 100ms間隔 (Javaの DEFAULT_INTERVAL)
 }
-const addRotation = () => { if (currentScreen.value === 'process') currentSpeed.value += 1.0 }
+
 const getQuality = () => {
   if (successTime.value >= 8.0) return { rank: '極上 (S)', color: '#FFD700' }
   if (successTime.value >= 5.0) return { rank: '良質 (A)', color: '#FFFFFF' }
   return { rank: '並 (B)', color: '#bdc3c7' }
 }
+
 const resetGame = () => { currentScreen.value = 'title'; selectedBase.value = null; selectedAdditive.value = null }
-onUnmounted(() => { clearInterval(gameInterval); clearInterval(countdownInterval) })
+
+onUnmounted(() => { 
+  clearInterval(gameInterval)
+  clearInterval(countdownInterval) 
+})
 </script>
 
 <template>
@@ -102,12 +147,18 @@ onUnmounted(() => { clearInterval(gameInterval); clearInterval(countdownInterval
         </div>
       </div>
 
-      <div v-if="currentScreen === 'process'" class="overlay-screen process-bg" @mousedown="addRotation">
+      <div v-if="currentScreen === 'process'" class="overlay-screen process-bg">
         <h2 class="process-msg">出力を調整せよ！</h2>
+        
+        <div style="color: yellow; margin-bottom: 10px;">Power: {{ currentSpeed.toFixed(2) }}</div>
+
         <div class="gauge-outer">
-          <div class="target-zone" v-if="currentRecipe" :style="{ left: (currentRecipe.range[0] * 5) + '%', width: ((currentRecipe.range[1] - currentRecipe.range[0]) * 5) + '%' }"></div>
+          <div class="target-zone" v-if="currentRecipe" 
+               :style="{ left: (currentRecipe.range[0] * 5) + '%', width: ((currentRecipe.range[1] - currentRecipe.range[0]) * 5) + '%' }">
+          </div>
           <div class="speed-bar" :style="{ width: (currentSpeed * 5) + '%' }"></div>
         </div>
+        
         <div class="timer-box">
           <span class="timer-label">TIME:</span>
           <span class="timer-number">{{ timeLeft.toFixed(1) }}</span>
