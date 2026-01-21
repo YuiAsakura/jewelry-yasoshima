@@ -88,9 +88,9 @@ const runGame = () => {
 }
 
 const getQuality = () => {
-  if (successTime.value >= 8.0) return { rank: '極上 (S)', color: '#FFD700' }
-  if (successTime.value >= 5.0) return { rank: '良質 (A)', color: '#FFFFFF' }
-  return { rank: '並 (B)', color: '#bdc3c7' }
+  if (successTime.value >= 8.0) return { rank: 'S', label: '極上 (S)', color: '#FFD700', color: '#FFD700', img: 'rank_s.png' }
+  if (successTime.value >= 5.0) return { rank: 'A', label: '良質 (A)', color: '#FFFFFF', color: '#FFFFFF', img: 'rank_a.png' }
+  return { rank: 'B', label: '並 (B)', color: '#bdc3c7', img: 'rank_b.png' }
 }
 
 const resetGame = () => { currentScreen.value = 'title'; selectedBase.value = null; selectedAdditive.value = null }
