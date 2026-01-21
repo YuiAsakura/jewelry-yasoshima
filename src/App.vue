@@ -165,6 +165,7 @@ onUnmounted(() => {
         </div>
       </div>
 
+      <!--
       <div v-if="currentScreen === 'result'" class="overlay-screen result-bg">
         <div class="result-box" v-if="currentRecipe">
           <h2>【完成】{{ currentRecipe.name }}</h2>
@@ -172,6 +173,31 @@ onUnmounted(() => {
           <button class="main-action-btn" @click="resetGame">タイトルへ</button>
         </div>
       </div>
+      -->
+
+      <div v-if="currentScreen === 'result'" class="overlay-screen result-bg">
+        <div class="result-card-frame" v-if="currentRecipe">
+          <div class="result-content-row">
+            <div class="result-text-col">
+              <div class="result-row">
+                <span class="result-label">生成物　：</span>
+                <span class="result-value">{{ currentRecipe.name }}</span>
+              </div>
+              <div class="result-row">
+                <span class="result-label">査定金額：</span>
+                <span class="result-value" :style="{ color: getQuality().color }">{{ getQuality().label }}</span>
+              </div>
+            </div>
+            <div class="result-image-col">
+              <img :src="getQuality().img" alt="Rank Icon" class="rank-icon" />
+            </div>
+          </div>
+        </div>
+        
+        <div class="result-footer">
+           <button class="main-action-btn" @click="resetGame">タイトルへ</button>
+        </div>
+      </div>      
 
     </div>
   </div>
