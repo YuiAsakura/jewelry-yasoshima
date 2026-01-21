@@ -88,9 +88,9 @@ const runGame = () => {
 }
 
 const getQuality = () => {
-  if (successTime.value >= 8.0) return { rank: '極上 (S)', color: '#FFD700' }
-  if (successTime.value >= 5.0) return { rank: '良質 (A)', color: '#FFFFFF' }
-  return { rank: '並 (B)', color: '#bdc3c7' }
+  if (successTime.value >= 8.0) return { rank: 'S', label: '極上 (S)', color: '#FFD700', color: '#FFD700', img: 'rank_s.png' }
+  if (successTime.value >= 5.0) return { rank: 'A', label: '良質 (A)', color: '#FFFFFF', color: '#FFFFFF', img: 'rank_a.png' }
+  return { rank: 'B', label: '並 (B)', color: '#bdc3c7', img: 'rank_b.png' }
 }
 
 const resetGame = () => { currentScreen.value = 'title'; selectedBase.value = null; selectedAdditive.value = null }
@@ -165,6 +165,7 @@ onUnmounted(() => {
         </div>
       </div>
 
+      <!--
       <div v-if="currentScreen === 'result'" class="overlay-screen result-bg">
         <div class="result-box" v-if="currentRecipe">
           <h2>【完成】{{ currentRecipe.name }}</h2>
@@ -172,6 +173,31 @@ onUnmounted(() => {
           <button class="main-action-btn" @click="resetGame">タイトルへ</button>
         </div>
       </div>
+      -->
+
+      <div v-if="currentScreen === 'result'" class="overlay-screen result-bg">
+        <div class="result-card-frame" v-if="currentRecipe">
+          <div class="result-content-row">
+            <div class="result-text-col">
+              <div class="result-row">
+                <span class="result-label">生成物　：</span>
+                <span class="result-value">{{ currentRecipe.name }}</span>
+              </div>
+              <div class="result-row">
+                <span class="result-label">査定金額：</span>
+                <span class="result-value" :style="{ color: getQuality().color }">{{ getQuality().label }}</span>
+              </div>
+            </div>
+            <div class="result-image-col">
+              <img :src="getQuality().img" alt="Rank Icon" class="rank-icon" />
+            </div>
+          </div>
+        </div>
+        
+        <div class="result-footer">
+           <button class="main-action-btn" @click="resetGame">タイトルへ</button>
+        </div>
+      </div>      
 
     </div>
   </div>
