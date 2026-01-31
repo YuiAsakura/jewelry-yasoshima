@@ -7,7 +7,7 @@ const currentScreen = ref('title')
 const selectedBase = ref(null)
 const selectedAdditive = ref(null)
 const countdownValue = ref(3)
-const currentSpeed = ref(0) // Javaから取得した数値が入る場所
+const currentSpeed = ref(0) 
 const successTime = ref(0)
 const timeLeft = ref(10)
 let gameInterval = null
@@ -27,27 +27,34 @@ const recipes = [
 const currentRecipe = computed(() => recipes.find(r => r.m1 === selectedBase.value && r.m2 === selectedAdditive.value) || null)
 const canCreate = computed(() => currentRecipe.value !== null)
 
-// --- Javaロジックの移植: ラズパイからデータを取得 ---
+// --- ラズパイからデータを取得 (awaitを外してループを止めないように改良) ---
 const fetchPowerData = async () => {
   try {
     const response = await fetch(SERVER_URL)
     if (response.ok) {
       const data = await response.json()
-      // JSONの "speed" プロパティを currentSpeed に反映
-      // Javaの System.out.println("Power Data: " + response.body()) に相当
-      currentSpeed.value = data.speed 
-    } else {
-      console.error("HTTP Error: " + response.status)
+      // ラズパイから有効な数値が来ている場合のみ反映
+      if (data.speed > 0) {
+        currentSpeed.value = data.speed 
+      }
     }
   } catch (e) {
-    console.error("Error fetching power data: " + e.message)
+    // 通信エラー時はコンソール表示のみ（ゲームは止めない）
+    console.warn("Pi disconnected, using manual mode.")
   }
 }
 
-// --- カウントダウン ---
+// --- クリックで動かすための関数 (追加) ---
+const addRotation = () => {
+  if (currentScreen.value === 'process') {
+    currentSpeed.value += 1.5; // クリックでパワーを足す
+  }
+}
+
 const startCountdown = () => {
   currentScreen.value = 'countdown'
   countdownValue.value = 3
+  if (countdownInterval) clearInterval(countdownInterval)
   countdownInterval = setInterval(() => {
     countdownValue.value--
     if (countdownValue.value <= 0) {
@@ -57,7 +64,6 @@ const startCountdown = () => {
   }, 1000)
 }
 
-// --- ゲーム実行 (Javaの continuousFetch に相当) ---
 const runGame = () => {
   currentScreen.value = 'process'
   currentSpeed.value = 0
@@ -66,30 +72,36 @@ const runGame = () => {
 
   if (gameInterval) clearInterval(gameInterval)
 
-  gameInterval = setInterval(async () => {
-    // 1. ラズパイからデータを取得 (Javaの fetchPowerData)
-    await fetchPowerData()
+  // asyncを外し、内部でawaitを使わないことでタイマー精度を確保
+  gameInterval = setInterval(() => {
+    // 1. タイマー更新を最優先
+    timeLeft.value = Math.max(0, timeLeft.value - 0.1)
 
-    // 2. 成功判定
+    // 2. 通信は「投げっぱなし」で実行 (処理を待たない)
+    fetchPowerData()
+
+    // 3. 自然減衰 (クリック対応およびラズパイ停止時の戻り)
+    if (currentSpeed.value > 0) {
+      currentSpeed.value -= 0.1 
+    }
+
+    // 4. 成功判定
     const data = currentRecipe.value
     if (data && currentSpeed.value >= data.range[0] && currentSpeed.value <= data.range[1]) {
       successTime.value += 0.1
     }
 
-    // 3. タイマー更新
-    timeLeft.value = Math.max(0, timeLeft.value - 0.1)
-
-    // 4. 終了判定
+    // 5. 終了判定
     if (timeLeft.value <= 0) {
       clearInterval(gameInterval)
       currentScreen.value = 'result'
     }
-  }, 100) // 100ms間隔 (Javaの DEFAULT_INTERVAL)
+  }, 100)
 }
 
 const getQuality = () => {
-  if (successTime.value >= 8.0) return { rank: 'S', label: '極上 (S)', color: '#FFD700', color: '#FFD700', img: 'rank_s.png' }
-  if (successTime.value >= 5.0) return { rank: 'A', label: '良質 (A)', color: '#FFFFFF', color: '#FFFFFF', img: 'rank_a.png' }
+  if (successTime.value >= 8.0) return { rank: 'S', label: '極上 (S)', color: '#FFD700', img: 'rank_s.png' }
+  if (successTime.value >= 5.0) return { rank: 'A', label: '良質 (A)', color: '#FFFFFF', img: 'rank_a.png' }
   return { rank: 'B', label: '並 (B)', color: '#bdc3c7', img: 'rank_b.png' }
 }
 
@@ -147,7 +159,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div v-if="currentScreen === 'process'" class="overlay-screen process-bg">
+      <div v-if="currentScreen === 'process'" class="overlay-screen process-bg" @mousedown="addRotation">
         <h2 class="process-msg">出力を調整せよ！</h2>
         
         <div style="color: yellow; margin-bottom: 10px;">Power: {{ currentSpeed.toFixed(2) }}</div>
@@ -164,16 +176,6 @@ onUnmounted(() => {
           <span class="timer-number">{{ timeLeft.toFixed(1) }}</span>
         </div>
       </div>
-
-      <!--
-      <div v-if="currentScreen === 'result'" class="overlay-screen result-bg">
-        <div class="result-box" v-if="currentRecipe">
-          <h2>【完成】{{ currentRecipe.name }}</h2>
-          <h1 class="rank-text" :style="{ color: getQuality().color }">{{ getQuality().rank }}</h1>
-          <button class="main-action-btn" @click="resetGame">タイトルへ</button>
-        </div>
-      </div>
-      -->
 
       <div v-if="currentScreen === 'result'" class="overlay-screen result-bg">
         <div class="result-card-frame" v-if="currentRecipe">
@@ -204,36 +206,47 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* ゲージの動作に必須なスタイル（ここにあると確実に反映されます） */
+/* ゲージの動作スタイル */
 .gauge-outer {
     width: 80%;
     height: 50px;
     background: rgba(0, 0, 0, 0.4);
     border: 3px solid white;
     border-radius: 25px;
-    position: relative; /* 子要素の起点をここにする */
+    position: relative;
     overflow: hidden;
-    margin: 30px 0;
+    margin: 30px auto;
 }
 
 .target-zone {
     position: absolute;
     height: 100%;
     background: rgba(255, 255, 255, 0.3);
-    border-left: 2px solid #00ff00; /* 境界線をわかりやすく */
+    border-left: 2px solid #00ff00;
     border-right: 2px solid #00ff00;
-    z-index: 1; /* バーより後ろ */
+    z-index: 1;
 }
 
 .speed-bar {
     height: 100%;
     background: linear-gradient(90deg, #ff6b6b, #e03131);
     transition: width 0.1s linear;
-    z-index: 2; /* ターゲットゾーンより前 */
+    z-index: 2;
 }
 
-/* カウントダウンの文字 */
 .countdown-number { font-size: 8rem; color: white; text-shadow: 0 0 20px rgba(255,255,255,0.8); }
 .process-msg { color: white; margin-bottom: 10px; }
-.timer-display { font-size: 2rem; color: white; font-weight: bold; }
+.timer-box { font-size: 2rem; color: white; font-weight: bold; }
+
+/* リザルトカード用スタイル */
+.result-card-frame {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 30px;
+    border: 2px solid #fff;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+.result-content-row { display: flex; align-items: center; gap: 30px; }
+.result-row { margin: 10px 0; font-size: 1.5rem; color: white; text-align: left; }
+.rank-icon { width: 120px; height: 120px; object-fit: contain; }
 </style>
