@@ -1,252 +1,309 @@
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import './style.css'
 
-// --- 基本状態 ---
+// --- ゲーム状態管理 ---
 const currentScreen = ref('title') 
-const selectedBase = ref(null)
-const selectedAdditive = ref(null)
-const countdownValue = ref(3)
-const currentSpeed = ref(0) 
-const successTime = ref(0)
-const timeLeft = ref(10)
-let gameInterval = null
-let countdownInterval = null
+const selectedGem = ref(null)      
+const currentStepIndex = ref(0)    
+const progress = ref(0)            
+const timeLeft = ref(0)            
+const countdownValue = ref(3)      
+const lastInputState = ref(false) 
+const keys = ref({})
+const stepResults = ref([])
 
-// Javaのコードにあった接続先
-const SERVER_URL = "http://10.22.243.89:5000/power"
+// --- WebHID 関連 ---
+const hidDevice = ref(null)
+const lastG = ref(0)
+const SHAKE_THRESHOLD = 600
 
-const recipes = [
-  { m1: 'C',     m2: 'Fe',    name: 'ダイヤモンド', range: [9, 11], decay: 0.4 },
-  { m1: 'Al2O3', m2: 'Cr2O3', name: 'ルビー',       range: [2, 5],  decay: 0.2 },
-  { m1: 'Al2O3', m2: 'Fe',    name: 'サファイア',   range: [2, 5],  decay: 0.2 },
-  { m1: 'SiO2',  m2: 'Fe',    name: 'アメジスト',   range: [6, 8],  decay: 0.3 },
-  { m1: 'SiO2',  m2: 'なし',   name: '水晶',         range: [6, 8],  decay: 0.3 }
-]
+// --- 全宝石データ ---
+const gemData = {
+  ruby: { name: 'ルビー', method: 'ベルヌーイ法', steps: [
+    { id: 'mash', label: '酸化アルミニウム投入', target: 100, timeLimit: 10, hint: 'Aボタン連打！' },
+    { id: 'rotate', label: '台座成形', target: 100, timeLimit: 15, hint: 'スティック回転！' },
+    { id: 'shake', label: '表面研磨', target: 100, timeLimit: 10, hint: 'ジョイコンを振れ！' }
+  ]},
+  sapphire: { name: 'サファイア', method: 'ベルヌーイ法', steps: [
+    { id: 'long_press', label: '原料投入', target: 100, timeLimit: 10, hint: 'Aボタン長押し！' },
+    { id: 'rotate', label: '台座成形', target: 100, timeLimit: 15, hint: 'スティック回転！' },
+    { id: 'shake', label: '研磨', target: 200, timeLimit: 10, hint: '振れ！' }
+  ]},
+  emerald: { name: 'エメラルド', method: 'フラックス法', steps: [
+    { id: 'rotate', label: '原料溶解', target: 100, timeLimit: 15, hint: 'スティック回転！' },
+    { id: 'keep_level', label: '徐冷', target: 100, timeLimit: 20, hint: '水平を保て！' },
+    { id: 'pointer', label: 'ブラシ洗浄', target: 100, timeLimit: 15, hint: 'スティックでこすれ！' }
+  ]},
+  crystal: { name: 'クリスタル', method: 'フラックス法', steps: [
+    { id: 'rotate', label: '溶解', target: 100, timeLimit: 15, hint: '回転！' },
+    { id: 'keep_level', label: '徐冷', target: 100, timeLimit: 20, hint: '水平！' },
+    { id: 'pointer', label: '洗浄', target: 100, timeLimit: 15, hint: 'こすれ！' }
+  ]},
+  amethyst: { name: 'アメジスト', method: 'フラックス法', steps: [
+    { id: 'rotate', label: '原料溶解', target: 100, timeLimit: 12, hint: 'スティック回転！' },
+    { id: 'keep_level', label: '徐冷', target: 100, timeLimit: 15, hint: '水平を保て！' },
+    { id: 'ir_sensor', label: '放射線照射', target: 100, timeLimit: 10, hint: 'A長押し！' }
+  ]},
+  diamond: { name: 'ダイヤモンド', method: 'HPHT法', steps: [
+    { id: 'press_rotate', label: '超高圧印加', target: 100, timeLimit: 20, hint: 'A＋スティック回転！' },
+    { id: 'press_shake', label: '超高温加熱', target: 200, timeLimit: 15, hint: 'Aを押しながら振れ！' }
+  ]}
+}
 
-const currentRecipe = computed(() => recipes.find(r => r.m1 === selectedBase.value && r.m2 === selectedAdditive.value) || null)
-const canCreate = computed(() => currentRecipe.value !== null)
+const currentStep = computed(() => {
+  if (!selectedGem.value) return null
+  return gemData[selectedGem.value].steps[currentStepIndex.value]
+})
 
-// --- ラズパイからデータを取得 (awaitを外してループを止めないように改良) ---
-const fetchPowerData = async () => {
+// --- WebHID: 加速度データの処理 ---
+// --- デバッグ用の変数（画面に表示させると原因がすぐわかります） ---
+const debugMessage = ref("未接続");
+
+// --- 判定の連投を防ぐためのフラグ ---
+const canAddProgress = ref(true);
+
+const handleInputReport = (event) => {
+  const { data, reportId } = event;
+
+  // ゲーム中かつ宝石が選択されているかチェック
+  if (currentScreen.value !== 'game' || !currentStep.value) return;
+
+  // 「振り（shake）」が含まれる工程のみ処理
+  if (currentStep.value.id.includes('shake')) {
+    try {
+      // 1. レポートIDに応じたオフセット設定（0x30:フル, 0x3f:標準）
+      const offset = (reportId === 0x30) ? 13 : 1;
+      
+      // 2. 加速度 Rawデータの取得（16bit Little Endian）
+      const x = data.getInt16(offset, true);
+      const y = data.getInt16(offset + 2, true);
+      const z = data.getInt16(offset + 4, true);
+      
+      // 3. 加速度の合成ベクトル（大きさ）を計算
+      const currentG = Math.sqrt(x*x + y*y + z*z);
+      
+      if (lastG.value !== 0) {
+        // 4. 前回との差分（衝撃の強さ ≒ 振る速度の変化量）を計算
+        const deltaG = Math.abs(currentG - lastG.value);
+
+        // 5. 判定ロジック
+        // しきい値を 8000 以上に設定し、持ち上げなどの低速な動きをカット
+        if (deltaG > 25000 && canAddProgress.value) {
+          
+          // ダイヤモンド等の「Aボタン＋振り」が必要な場合の追加チェック
+          const gp = navigator.getGamepads()[0];
+          const actionPressed = (gp && gp.buttons[0].pressed) || keys.value[' '];
+          
+          if (currentStep.value.id === 'press_shake' && !actionPressed) {
+            lastG.value = currentG;
+            return;
+          }
+
+          // 6. 「速度連動型」の加算量計算
+          // 8000を超えた分を「速度ボーナス」として加算
+          // (deltaG - 最低しきい値) / 調整値 + 基本値
+          const speedGain = (deltaG - 25000) / 6000 + 1.5;
+          
+          // 1回の一振りでの最大加算量を制限（例：最大12.0まで）
+          const finalGain = Math.min(speedGain, 15.0);
+
+          // 進捗を更新
+          progress.value = Math.min(progress.value + finalGain, 100);
+
+          // 7. クールタイムの設定（多重カウント防止）
+          canAddProgress.value = false;
+          setTimeout(() => {
+            canAddProgress.value = true;
+          }, 150); // 0.12秒間は次の入力を受け付けない
+        }
+      }
+      
+      // 8. 判定の成否に関わらず、常に最新の値を保存して次回の比較に備える
+      lastG.value = currentG;
+      
+    } catch (e) {
+      console.error("Input Report Error:", e);
+    }
+  }
+};
+
+const connectJoyCon = async () => {
   try {
-    const response = await fetch(SERVER_URL)
-    if (response.ok) {
-      const data = await response.json()
-      // ラズパイから有効な数値が来ている場合のみ反映
-      if (data.speed > 0) {
-        currentSpeed.value = data.speed 
+    const devices = await navigator.hid.requestDevice({ filters: [{ vendorId: 0x057e }] });
+    if (devices.length === 0) return;
+    hidDevice.value = devices[0];
+
+    if (!hidDevice.value.opened) {
+      await hidDevice.value.open();
+    }
+
+    // --- 確実に加速度をONにする3ステップのコマンド ---
+    
+    // 1. 加速度・ジャイロセンサー自体を有効化 (サブコマンド 0x40, 引数 0x01)
+    await hidDevice.value.sendReport(0x01, new Uint8Array([0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x01]));
+    
+    // 2. 少し待機（ジョイコン内の処理時間を稼ぐ）
+    await new Promise(r => setTimeout(r, 100));
+
+    // 3. レポートモードを 0x30 (フルデータ) に設定 (サブコマンド 0x03, 引数 0x30)
+    await hidDevice.value.sendReport(0x01, new Uint8Array([0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x30]));
+
+    hidDevice.value.oninputreport = handleInputReport;
+    debugMessage.value = "接続成功・モード切替完";
+    
+    startCountdown();
+  } catch (err) {
+    debugMessage.value = "エラー: " + err.message;
+    console.error(err);
+  }
+};
+
+// --- ゲームループ（時間と通常入力） ---
+let gameLoopInterval = null
+const startLogicLoop = () => {
+  if (gameLoopInterval) clearInterval(gameLoopInterval)
+  gameLoopInterval = setInterval(() => {
+    if (currentScreen.value !== 'game') return
+    
+    timeLeft.value = Math.max(0, timeLeft.value - 0.1)
+
+    const gp = navigator.getGamepads()[0]
+    const actionPressed = (gp && gp.buttons[0].pressed) || keys.value[' ']
+    const axisActive = (gp && (Math.abs(gp.axes[0]) > 0.6 || Math.abs(gp.axes[1]) > 0.6)) || 
+                     (keys.value['ArrowUp'] || keys.value['ArrowDown'] || keys.value['ArrowLeft'] || keys.value['ArrowRight'])
+
+    if (progress.value < currentStep.value.target) {
+      switch (currentStep.value.id) {
+        case 'mash':
+          if (actionPressed && !lastInputState.value) progress.value += 5; break
+        case 'long_press':
+        case 'ir_sensor':
+          if (actionPressed) progress.value += 0.7; break
+        case 'rotate':
+        case 'pointer':
+          if (axisActive) progress.value += 0.8; break
+        case 'keep_level':
+          if (!axisActive && !actionPressed) progress.value += 0.5; break
+        case 'press_rotate':
+          if (actionPressed && axisActive) progress.value += 0.8; break
+      }
+      lastInputState.value = actionPressed
+      
+      if (progress.value >= currentStep.value.target) {
+        progress.value = currentStep.value.target
       }
     }
-  } catch (e) {
-    // 通信エラー時はコンソール表示のみ（ゲームは止めない）
-    console.warn("Pi disconnected, using manual mode.")
+
+    if (timeLeft.value <= 0) {
+      nextStep()
+    }
+  }, 100)
+}
+
+const nextStep = () => {
+  stepResults.value.push(progress.value / currentStep.value.target)
+  progress.value = 0
+  if (currentStepIndex.value < gemData[selectedGem.value].steps.length - 1) {
+    currentStepIndex.value++
+    timeLeft.value = currentStep.value.timeLimit
+  } else {
+    currentScreen.value = 'result'
+    clearInterval(gameLoopInterval)
   }
 }
 
-// --- クリックで動かすための関数 (追加) ---
-const addRotation = () => {
-  if (currentScreen.value === 'process') {
-    currentSpeed.value += 1.5; // クリックでパワーを足す
+// --- シーケンス制御 ---
+const selectGem = (key) => {
+  selectedGem.value = key
+  // 既に有効なHID接続があるなら即開始
+  if (hidDevice.value && hidDevice.value.opened) {
+    startCountdown()
+  } else {
+    currentScreen.value = 'connect'
   }
 }
 
 const startCountdown = () => {
   currentScreen.value = 'countdown'
   countdownValue.value = 3
-  if (countdownInterval) clearInterval(countdownInterval)
-  countdownInterval = setInterval(() => {
+  
+  const cd = setInterval(() => {
     countdownValue.value--
     if (countdownValue.value <= 0) {
-      clearInterval(countdownInterval)
-      runGame()
+      clearInterval(cd)
+      currentStepIndex.value = 0
+      timeLeft.value = currentStep.value.timeLimit
+      currentScreen.value = 'game'
+      startLogicLoop()
     }
   }, 1000)
 }
 
-const runGame = () => {
-  currentScreen.value = 'process'
-  currentSpeed.value = 0
-  successTime.value = 0
-  timeLeft.value = 10
+onMounted(() => {
+  window.addEventListener('keydown', (e) => { keys.value[e.key] = true })
+  window.addEventListener('keyup', (e) => { keys.value[e.key] = false })
+})
 
-  if (gameInterval) clearInterval(gameInterval)
-
-  // asyncを外し、内部でawaitを使わないことでタイマー精度を確保
-  gameInterval = setInterval(() => {
-    // 1. タイマー更新を最優先
-    timeLeft.value = Math.max(0, timeLeft.value - 0.1)
-
-    // 2. 通信は「投げっぱなし」で実行 (処理を待たない)
-    fetchPowerData()
-
-    // 3. 自然減衰 (クリック対応およびラズパイ停止時の戻り)
-    if (currentSpeed.value > 0) {
-      currentSpeed.value -= 0.1 
-    }
-
-    // 4. 成功判定
-    const data = currentRecipe.value
-    if (data && currentSpeed.value >= data.range[0] && currentSpeed.value <= data.range[1]) {
-      successTime.value += 0.1
-    }
-
-    // 5. 終了判定
-    if (timeLeft.value <= 0) {
-      clearInterval(gameInterval)
-      currentScreen.value = 'result'
-    }
-  }, 100)
-}
-
-const getQuality = () => {
-  if (successTime.value >= 8.0) return { rank: 'S', label: '極上 (S)', color: '#FFD700', img: 'rank_s.png' }
-  if (successTime.value >= 5.0) return { rank: 'A', label: '良質 (A)', color: '#FFFFFF', img: 'rank_a.png' }
-  return { rank: 'B', label: '並 (B)', color: '#bdc3c7', img: 'rank_b.png' }
-}
-
-const resetGame = () => { currentScreen.value = 'title'; selectedBase.value = null; selectedAdditive.value = null }
-
-onUnmounted(() => { 
-  clearInterval(gameInterval)
-  clearInterval(countdownInterval) 
+onUnmounted(() => {
+  if (gameLoopInterval) clearInterval(gameLoopInterval)
 })
 </script>
 
 <template>
-  <div id="game-app">
-    <div class="screen-container">
-      
-      <div v-if="currentScreen === 'title'" class="content title-screen">
-        <div class="main-gem-container"><img src="/image.png" alt="宝石" class="main-gem"></div>
-        <h1 class="title">ジュエリーヤソシマ</h1>
-        <button class="create-button" @click="currentScreen = 'select'">つくる ▶</button>
-      </div>
-
-      <div v-if="currentScreen === 'select'" class="palette-screen">
-        <div class="main-content">
-          <div class="preview-frame">
-            <div class="gem-slot">{{ selectedBase || '?' }}</div>
-            <div class="plus-text">+</div>
-            <div class="gem-slot">{{ selectedAdditive || '?' }}</div>
-          </div>
-          <div class="palette-center">
-            <div class="palette-group">
-              <div class="step-label">① 原料</div>
-              <div class="btn-list">
-                <button v-for="b in ['C', 'Al2O3', 'SiO2']" :key="b" class="block-btn" :class="{ active: selectedBase === b }" @click="selectedBase = b; selectedAdditive = null">{{ b }}</button>
-              </div>
-            </div>
-            <div class="palette-group" :class="{ disabled: !selectedBase }">
-              <div class="step-label">② 触媒・発色</div>
-              <div class="btn-list">
-                <button v-for="a in ['Fe', 'Cr2O3', 'なし']" :key="a" class="block-btn" :class="{ active: selectedAdditive === a }" @click="selectedAdditive = a">{{ a }}</button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="footer">
-          <button class="main-action-btn" :disabled="!canCreate" @click="startCountdown">つくる！</button>
-        </div>
-      </div>
-
-      <div v-if="currentScreen === 'countdown'" class="overlay-screen countdown-bg">
-        <div class="countdown-body">
-          <p class="countdown-label">反応開始まで...</p>
-          <div class="countdown-number-wrapper">
-             <span class="countdown-number">{{ countdownValue }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="currentScreen === 'process'" class="overlay-screen process-bg" @mousedown="addRotation">
-        <h2 class="process-msg">出力を調整せよ！</h2>
-        
-        <div style="color: yellow; margin-bottom: 10px;">Power: {{ currentSpeed.toFixed(2) }}</div>
-
-        <div class="gauge-outer">
-          <div class="target-zone" v-if="currentRecipe" 
-               :style="{ left: (currentRecipe.range[0] * 5) + '%', width: ((currentRecipe.range[1] - currentRecipe.range[0]) * 5) + '%' }">
-          </div>
-          <div class="speed-bar" :style="{ width: (currentSpeed * 5) + '%' }"></div>
-        </div>
-        
-        <div class="timer-box">
-          <span class="timer-label">TIME:</span>
-          <span class="timer-number">{{ timeLeft.toFixed(1) }}</span>
-        </div>
-      </div>
-
-      <div v-if="currentScreen === 'result'" class="overlay-screen result-bg">
-        <div class="result-card-frame" v-if="currentRecipe">
-          <div class="result-content-row">
-            <div class="result-text-col">
-              <div class="result-row">
-                <span class="result-label">生成物　：</span>
-                <span class="result-value">{{ currentRecipe.name }}</span>
-              </div>
-              <div class="result-row">
-                <span class="result-label">査定金額：</span>
-                <span class="result-value" :style="{ color: getQuality().color }">{{ getQuality().label }}</span>
-              </div>
-            </div>
-            <div class="result-image-col">
-              <img :src="getQuality().img" alt="Rank Icon" class="rank-icon" />
-            </div>
-          </div>
-        </div>
-        
-        <div class="result-footer">
-           <button class="main-action-btn" @click="resetGame">タイトルへ</button>
-        </div>
-      </div>      
-
+  <div class="screen-container">
+    <div style="position: fixed; bottom: 10px; left: 10px; color: red; font-size: 12px; z-index: 100;">
+      Debug: {{ debugMessage }}
     </div>
+    
+    <div v-if="currentScreen === 'title'" class="title-screen">
+      <h1 class="title">ジュエリーヤソシマ</h1>
+      <button class="create-button" @click="currentScreen = 'select'">つくる ▶</button>
+    </div>
+
+    <div v-if="currentScreen === 'select'" class="palette-screen">
+      <div class="main-content">
+        <h2 style="color: white;">宝石を選択</h2>
+        <div class="gem-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+          <button v-for="(data, key) in gemData" :key="key" class="block-btn" @click="selectGem(key)" style="width: 200px; height: 60px;">
+            {{ data.name }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="currentScreen === 'connect'" class="overlay-screen countdown-bg">
+      <div class="result-card-frame" style="text-align: center; padding: 40px;">
+        <h2 style="color: white;">ジョイコン接続</h2>
+        <p style="color: #a5d8ff; margin: 20px 0;">
+          「接続」ボタンを押し、ブラウザのリストから<br>
+          ペアリング済みのJoy-Conを選んでください。
+        </p>
+        <button class="main-action-btn" @click="connectJoyCon">接続を開始</button>
+      </div>
+    </div>
+
+    <div v-if="currentScreen === 'countdown'" class="overlay-screen countdown-bg">
+      <div class="countdown-body">
+        <span class="countdown-number">{{ countdownValue }}</span>
+      </div>
+    </div>
+
+    <div v-if="currentScreen === 'game'" class="overlay-screen" style="background: none;">
+      <h2 style="color: white;">{{ currentStep.label }}</h2>
+      <div class="gauge-outer" style="width: 70%; height: 30px; background: rgba(0,0,0,0.6); border: 2px solid white; border-radius: 15px; overflow: hidden; margin: 25px 0;">
+        <div :style="{ width: (progress / currentStep.target * 100) + '%', height: '100%', background: '#ff6b6b' }"></div>
+      </div>
+      <div class="timer-box">
+        <span class="timer-number">{{ timeLeft.toFixed(1) }}s</span>
+      </div>
+      <p style="color: #ffd43b;">{{ currentStep.hint }}</p>
+    </div>
+
+    <div v-if="currentScreen === 'result'" class="overlay-screen">
+      <h2 style="color: white;">完成！</h2>
+      <button class="main-action-btn" @click="currentScreen = 'title'">タイトルへ</button>
+    </div>
+
   </div>
 </template>
-
-<style scoped>
-/* ゲージの動作スタイル */
-.gauge-outer {
-    width: 80%;
-    height: 50px;
-    background: rgba(0, 0, 0, 0.4);
-    border: 3px solid white;
-    border-radius: 25px;
-    position: relative;
-    overflow: hidden;
-    margin: 30px auto;
-}
-
-.target-zone {
-    position: absolute;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.3);
-    border-left: 2px solid #00ff00;
-    border-right: 2px solid #00ff00;
-    z-index: 1;
-}
-
-.speed-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #ff6b6b, #e03131);
-    transition: width 0.1s linear;
-    z-index: 2;
-}
-
-.countdown-number { font-size: 8rem; color: white; text-shadow: 0 0 20px rgba(255,255,255,0.8); }
-.process-msg { color: white; margin-bottom: 10px; }
-.timer-box { font-size: 2rem; color: white; font-weight: bold; }
-
-/* リザルトカード用スタイル */
-.result-card-frame {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 30px;
-    border: 2px solid #fff;
-    border-radius: 15px;
-    margin-bottom: 20px;
-}
-.result-content-row { display: flex; align-items: center; gap: 30px; }
-.result-row { margin: 10px 0; font-size: 1.5rem; color: white; text-align: left; }
-.rank-icon { width: 120px; height: 120px; object-fit: contain; }
-</style>
