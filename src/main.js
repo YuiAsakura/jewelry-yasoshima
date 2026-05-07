@@ -1,16 +1,5 @@
-///import './assets/main.css'
-
-//import { createApp } from 'vue'
-//import App from './App.vue'
-//import router from './router'
-
-//const app = createApp(App)
-
-//app.use(router)
-
-//app.mount('#app')
 import { createApp } from 'vue'
-import App from './App.vue' // ここでApp.vueを読み込んでいます
-import './style.css'
+import App from './App.vue'
+import './assets/style.css' // CSSをここで一括適用
 
 createApp(App).mount('#app')
