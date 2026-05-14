@@ -7,16 +7,16 @@ export const GEM_DATA = {
     name: 'ルビー',
     method: 'ベルヌーイ法',
     steps: [
-      { id: 'mash', label: '酸化アルミニウム投入', timeLimit: 10, hint: 'Aボタン連打！', image: "" },
-      { id: 'rotate', label: '台座成形', timeLimit: 10, hint: 'スティックを回せ！', image: "" },
-      { id: 'centrifugal', label: '表面研磨', timeLimit: 10, hint: 'ジョイコンを力強く振れ！', image: "" }
+      { id: 'shake', label: '酸化アルミニウム投入', timeLimit: 10, hint: 'ボタン連打！', image: "/src/assets/images/ruby.png" },
+      { id: 'pointer', label: '照準', timeLimit: 30, hint: 'ターゲットに照準を合わせろ！', image: "/src/assets/images/ruby.png" },
+      { id: 'centrifugal', label: '表面研磨', timeLimit: 10, hint: 'ジョイコンを回せ!', image: "/src/assets/images/ruby.png" }
     ]
   },
   sapphire: {
     name: 'サファイア',
     method: 'ベルヌーイ法',
     steps: [
-      { id: 'long_press', label: '原料投入', timeLimit: 10, hint: 'Aボタン長押し！', image: "" },
+      { id: 'long_press', label: '原料投入', timeLimit: 10, hint: 'Aボタン長押し!', image: "" },
       { id: 'rotate', label: '結晶成長', timeLimit: 15, hint: 'スティックまたは本体を回せ！', image: "" },
       { id: 'shake', label: '研磨', timeLimit: 10, hint: '力強く振れ！', image: "" }
     ]
@@ -25,9 +25,9 @@ export const GEM_DATA = {
     name: 'エメラルド',
     method: 'フラックス法',
     steps: [
-      { id: 'rotate', label: '原料溶解', timeLimit: 15, hint: 'スティック回転！', image: "" },
-      { id: 'keep_level', label: '徐冷', timeLimit: 20, hint: '水平を保て！', image: "" },
-      { id: 'shake', label: '仕上げ', timeLimit: 10, hint: '振れ！', image: "" }
+      { id: 'rotate', label: '原料溶解', timeLimit: 15, hint: 'スティック回転！', image: "/src/assets/images/emerald.png" },
+      { id: 'keep_level', label: '徐冷', timeLimit: 20, hint: '水平を保て！', image: "/src/assets/images/emerald.png" },
+      { id: 'shake', label: '仕上げ', timeLimit: 10, hint: '振れ！', image: "/src/assets/images/emerald.png" }
     ]
   },
   crystal: {
@@ -44,15 +44,15 @@ export const GEM_DATA = {
     method: '水熱合成法',
     steps: [
       { id: 'rotate', label: '熱水循環', timeLimit: 15, hint: 'スティック回転！', image: "" },
-      { id: 'long_press', label: '放射線照射', timeLimit: 12, hint: 'Aボタン長押し！', image: "" }
+      { id: 'long_press', label: '放射線照射', timeLimit: 12, hint: 'Aボタン長押し!', image: "" }
     ]
   },
   diamond: {
     name: 'ダイヤモンド',
     method: 'HPHT法',
     steps: [
-      { id: 'rotate', label: '超高圧印加', timeLimit: 20, hint: 'スティック回転！', image: "" },
-      { id: 'press_shake', label: '超高温加熱', timeLimit: 15, hint: 'Aを押しながら振れ！', image: "" }
+      { id: 'rotate', label: '超高圧印加', timeLimit: 20, hint: 'スティック回転！', image: "/src/assets/images/diamond.png" },
+      { id: 'press_shake', label: '超高温加熱', timeLimit: 15, hint: 'Aを押しながら振れ!', image: "/src/assets/images/diamond.png" }
     ]
   }
 };

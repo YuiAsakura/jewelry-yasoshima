@@ -6,6 +6,7 @@ export function useJoyCon() {
   const lastAccel = ref({ x: 0, y: 0, z: 0 });
   const canAddProgress = ref(true);
   const isSimulated = ref(false);
+  const irPointer = ref({ x: 0, y: 0 });
 
   const connect = async (simulate = false) => {
     if (simulate) {

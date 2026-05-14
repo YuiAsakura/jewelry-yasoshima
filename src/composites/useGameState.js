@@ -10,12 +10,24 @@ export function useGameState() {
   const progress = ref(0);
   const timeLeft = ref(0);
   const lastAngle = ref(null);
+  const stepProgressRates = ref([]);
 
   const isCountingDown = ref(false);
   const countdown = ref(3);
 
   const selectedGem = computed(() => GEM_DATA[selectedGemKey.value]);
   const currentStep = computed(() => selectedGem.value?.steps[currentStepIndex.value]);
+  const averageProgressRate = computed(() => {
+    if (!stepProgressRates.value.length) return 0;
+    const total = stepProgressRates.value.reduce((sum, rate) => sum + rate, 0);
+    return total / stepProgressRates.value.length;
+  });
+  const gameRank = computed(() => {
+    if (averageProgressRate.value >= 0.95) return 'S';
+    if (averageProgressRate.value >= 0.8) return 'A';
+    if (averageProgressRate.value >= 0.6) return 'B';
+    return 'C';
+  });
 
   const isStepCompleted = computed(() => progress.value >= PROGRESS_MAX);
   
@@ -24,6 +36,7 @@ export function useGameState() {
     currentStepIndex.value = 0;
     progress.value = 0;
     timeLeft.value = GEM_DATA[key].steps[0].timeLimit;
+    stepProgressRates.value = [];
 
     isCountingDown.value = true;
     countdown.value = 3;
@@ -32,6 +45,9 @@ export function useGameState() {
   };
 
   const nextStep = () => {
+    const currentRate = Math.min(progress.value / PROGRESS_MAX, 1);
+    stepProgressRates.value.push(currentRate);
+
     progress.value = 0;
     lastAngle.value = null;
     if (currentStepIndex.value < selectedGem.value.steps.length - 1) {
@@ -48,6 +64,7 @@ export function useGameState() {
     currentScreen, selectedGemKey, selectedGem, 
     currentStep, currentStepIndex, progress, timeLeft, 
     lastAngle, resetGame, nextStep,
-    isCountingDown, countdown
+    isCountingDown, countdown,
+    averageProgressRate, gameRank
   };
 }
