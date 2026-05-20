@@ -210,7 +210,7 @@ const handleInputReport = (event) => {
   // --- DEBUG: inputreport の生データと現在のステップを表示 ---
   try { console.log('[DEBUG] inputreport', { step: currentStep.value, accel: currentAccel, rotationThreshold: config.rotationThreshold }); } catch(e) {}
 
-  // --- Shake工程 (激しく振る) ---
+  // --- shake工程 (激しく振る) ---
   if (currentStep.value.id.includes('shake')) {
     const delta = getShakeDelta(currentAccel, lastAccel.value);
     if (delta > config.shakeThreshold && canAddProgress.value) {
