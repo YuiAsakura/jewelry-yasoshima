@@ -220,7 +220,7 @@ const handleInputReport = (event) => {
     }
   }
 
-  // --- Rotate工程 (NEW: ジョイコン自体をゆっくり回す) ---
+  // --- centrifugal工程 (NEW: ジョイコン自体をゆっくり回す) ---
   if (currentStep.value.id.includes('centrifugal')) {
     const centrifugal = getCentrifugal(currentAccel, lastAccel.value);
     if (centrifugal > config.rotationThreshold) {
