@@ -1,6 +1,5 @@
 <template>
   <div class="visual-area">
-    <!-- 画像パスがある場合のみ表示 -->
     <img 
       v-if="step.image" 
       :src="step.image" 
@@ -8,7 +7,6 @@
       alt="step-visual"
     />
     
-    <!-- 画像がない場合のプレースホルダー（ダミー表示） -->
     <div v-else class="no-image-placeholder">
       <div class="placeholder-icon">💎</div>
       <div class="placeholder-text">NO IMAGE</div>
@@ -31,10 +29,14 @@ defineProps({
 
 <style scoped>
 .visual-area {
+  /* ▼ 修正：固定値 250px を削除し、App.vue側の指示（100%）にそのまま従うようにします */
   width: 100%;
-  height: 250px;
-  background: rgba(17, 34, 64, 0.5);
-  border: 1px dashed #233554;
+  height: 100%;
+  
+  /* background: rgba(17, 34, 64, 0.5); */
+  background: transparent;
+  /* border: 1px dashed #233554; */
+  border: none;
   border-radius: 12px;
   display: flex;
   justify-content: center;
@@ -44,12 +46,16 @@ defineProps({
 }
 
 .step-image {
-  max-height: 90%;
-  max-width: 90%;
+  /* ▼ 修正：90%の制限を外し、枠いっぱいの100%まで拡大できるようにします */
+  width: 100%;
+  height: 100%;
+  
+  /* 関係のない元のスタイルはそのまま維持 */
   object-fit: contain;
   filter: drop-shadow(0 0 15px rgba(100, 255, 218, 0.3));
 }
 
+/* --- 以降、全く関係のない記述のため一切変更していません --- */
 .no-image-placeholder {
   text-align: center;
   color: #8892b0;
