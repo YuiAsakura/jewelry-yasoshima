@@ -191,7 +191,7 @@ const updateGyroCursor = (accel) => {
   const temp0Y    = convertTempToYPosition(0);    // 0度のY座標
   const temp2000Y = convertTempToYPosition(2000); // 2000度のY座標
 
-  const MARGIN = 0; // 目盛りの外側にどれくらいはみ出して動けるかの余白（px）
+  const MARGIN = 50; // 目盛りの外側にどれくらいはみ出して動けるかの余白（px）
 
   const minY = temp2000Y - MARGIN; // 操作線がいける一番上の限界
   const maxY = temp0Y + MARGIN;    // 操作線がいける一番下の限界
@@ -265,7 +265,7 @@ const handleInputReport = (event) => {
   if (currentStep.value.id.includes('shake')) {
     const delta = getShakeDelta(currentAccel, lastAccel.value);
     if (delta > config.shakeThreshold && canAddProgress.value) {
-      performAction(10);
+      performAction(30);
       sendVibration(hidDevice.value, packetCounter++, config.vibration);
       throttle(120);
     }
@@ -274,7 +274,7 @@ const handleInputReport = (event) => {
   if (currentStep.value.id.includes('centrifugal')) {
     const centrifugal = getCentrifugal(currentAccel, lastAccel.value);
     if (centrifugal > config.rotationThreshold) {
-      const rotationGain = Math.min((centrifugal - config.rotationThreshold) / 120, 14);
+      const rotationGain = Math.min((centrifugal - config.rotationThreshold) / 500, 3);
       progress.value = Math.min(progress.value + rotationGain, PROGRESS_MAX);
       if (canAddProgress.value) {
         sendVibration(hidDevice.value, packetCounter++, config.vibration);
