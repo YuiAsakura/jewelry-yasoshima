@@ -73,7 +73,7 @@ const convertTempToYPosition = (temperature) => {
   const centerY = window.innerHeight / 2;
   
   const startY = centerY + 247; // 0度（下側）のピクセル位置
-  const endY = centerY - 157;   // 2000度（上側）のピクセル位置
+  const endY = centerY - 130;   // 2000度（上側）のピクセル位置
   
   return startY + (endY - startY) * (temp / 2000);
 };
