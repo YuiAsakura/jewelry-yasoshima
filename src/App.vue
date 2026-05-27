@@ -187,9 +187,14 @@ const updateGyroCursor = (accel) => {
   const angleY = -Math.atan2(adjX, adjZ) * 180 / Math.PI; 
   const deltaY = (angleY / 25) * centerY * gyroCursorSpeed * factorY;
   newY = centerY + deltaY;
+
+  const imgHeight = window.innerHeight * 0.65;
+
+  const minY = centerY - (imgHeight / 2);
+  const maxY = centerY + (imgHeight / 2);
   
   gyroCursor.value.x = FIXED_X_POSITION.value;
-  gyroCursor.value.y = Math.max(0, Math.min(window.innerHeight, newY));
+  gyroCursor.value.y = Math.max(minY, Math.min(maxY, newY));
 };
 
 const resetGameWithPointerInit = (key) => {
