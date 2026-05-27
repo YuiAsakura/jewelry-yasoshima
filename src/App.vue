@@ -26,8 +26,8 @@ const pointerLastHitTime = ref(0);
 const pointerCalibrationTime = ref(0); 
 const pointerNeedsCalibration = ref(false); 
 const lastResetButtonState = ref(0); 
-const pointerHitThreshold = 50; 
-const pointerCalibrationDuration = 200; 
+const pointerHitThreshold = 10; 
+const pointerCalibrationDuration = 1000; 
 const pointerResetButtonMask = 0x20; 
 
 // 1秒（1000ミリ秒）キープで判定OK
@@ -60,7 +60,7 @@ const calibrateGyro = (accel) => {
  */
 const FIXED_X_POSITION = computed(() => {
   const centerX = window.innerWidth / 2;
-  return centerX - 240; 
+  return centerX - 280; 
 });
 
 /**
@@ -72,8 +72,8 @@ const convertTempToYPosition = (temperature) => {
   const temp = Math.max(0, Math.min(2500, temperature));
   const centerY = window.innerHeight / 2;
   
-  const startY = centerY + 185; // 0度（下側）のピクセル位置
-  const endY = centerY - 185;   // 2000度（上側）のピクセル位置
+  const startY = centerY + 247; // 0度（下側）のピクセル位置
+  const endY = centerY - 157;   // 2000度（上側）のピクセル位置
   
   return startY + (endY - startY) * (temp / 2000);
 };
@@ -188,11 +188,14 @@ const updateGyroCursor = (accel) => {
   const deltaY = (angleY / 25) * centerY * gyroCursorSpeed * factorY;
   newY = centerY + deltaY;
 
-  const imgHeight = window.innerHeight * 0.65;
+  const temp0Y    = convertTempToYPosition(0);    // 0度のY座標
+  const temp2000Y = convertTempToYPosition(2000); // 2000度のY座標
 
-  const minY = centerY - (imgHeight / 2);
-  const maxY = centerY + (imgHeight / 2);
-  
+  const MARGIN = 0; // 目盛りの外側にどれくらいはみ出して動けるかの余白（px）
+
+  const minY = temp2000Y - MARGIN; // 操作線がいける一番上の限界
+  const maxY = temp0Y + MARGIN;    // 操作線がいける一番下の限界
+
   gyroCursor.value.x = FIXED_X_POSITION.value;
   gyroCursor.value.y = Math.max(minY, Math.min(maxY, newY));
 };
@@ -599,7 +602,7 @@ const startApp = async (simulate) => {
 /* 目標温度のライン（横線） */
 .pointer-target {
   position: fixed;
-  width: 80px; 
+  width: 150px; 
   height: 6px;
   background-color: #64ffda;
   box-shadow: 0 0 12px #64ffda;
@@ -617,7 +620,7 @@ const startApp = async (simulate) => {
 /* 現在の操作カーソルライン（横線） */
 .pointer-cursor {
   position: fixed;
-  width: 65px; 
+  width: 130px; 
   height: 4px;
   background-color: #ffd166;
   box-shadow: 0 0 12px #ffd166;
