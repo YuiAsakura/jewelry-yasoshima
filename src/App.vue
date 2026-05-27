@@ -415,21 +415,21 @@ const startApp = async (simulate) => {
         </div>
       </Transition>
 
-      <div class="game-hud-container" :class="{ 'ui-blur': isCountingDown || isStepChanging }">
+    <div class="game-hud-container" :class="{ 'ui-blur': isCountingDown || isStepChanging }">
         
-        <div class="hud-left-top">
+        <div class="hud-right-top">
+          <div class="timer-title">TIME</div>
+          <div class="timer-display-game" :class="{ 'timer-low-game': timeLeft < 5 }">
+            {{ timeLeft.toFixed(1) }}<span>s</span>
+          </div>
+        </div>
+
+        <div class="hud-center-top">
           <div class="step-badge">STEP {{ currentStepIndex + 1 }}</div>
           <h2 class="step-title-game">{{ currentStep.label }}</h2>
           
           <div class="gauge-bar-outer-game">
             <div class="gauge-bar-inner-game" :style="{ width: Math.min((progress / PROGRESS_MAX) * 100, 100) + '%' }"></div>
-          </div>
-        </div>
-
-        <div class="hud-right-top">
-          <div class="timer-title">TIME</div>
-          <div class="timer-display-game" :class="{ 'timer-low-game': timeLeft < 5 }">
-            {{ timeLeft.toFixed(1) }}<span>s</span>
           </div>
         </div>
 
@@ -480,109 +480,119 @@ const startApp = async (simulate) => {
   background: #040d1a;
 }
 
+/* 全体構造を3段のグリッドに変更して中央に整列しやすくします */
 .game-hud-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 100px 1fr;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto 1fr; /* タイマー / 中央情報 / 画像 の3段 */
   width: 100%;
   height: 100%;
-  padding: 20px 40px;
+  padding: 15px 40px;
   box-sizing: border-box;
 }
 
-.hud-left-top {
-  grid-column: 1;
+/* タイマーを右上に絶対配置するためのエリア */
+.hud-right-top {
   grid-row: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
+  align-items: flex-end;
+  z-index: 20;
+  position: absolute;
+  top: 20px;
+  right: 40px;
+}
+
+/* ★復活＆サイズアップ：タイマーのテキストスタイル */
+.timer-title {
+  font-size: 1.2rem;
+  color: #8fb4ff;
+  letter-spacing: 0.2em;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.timer-display-game {
+  font-size: 4.8rem; /* ガツンと大きく */
+  font-weight: 800;
+  font-family: monospace;
+  color: #64ffda;
+  text-shadow: 0 0 20px rgba(100, 255, 218, 0.6);
+  line-height: 1.1;
+}
+.timer-display-game span {
+  font-size: 2rem;
+  margin-left: 4px;
+  font-weight: 500;
+}
+.timer-low-game {
+  color: #ff5e7e;
+  text-shadow: 0 0 20px rgba(255, 94, 126, 0.6);
+  animation: pulse-timer 0.5s ease-in-out infinite alternate;
+}
+
+/* ★STEP数、操作名、バーを画面の横中央にガチッと集約するスタイル */
+.hud-center-top {
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center; /* 横方向の中央揃え */
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 5px;
   z-index: 10;
 }
 
 .step-badge {
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: #8fb4ff;
   letter-spacing: 0.15em;
   margin-bottom: 4px;
 }
 
 .step-title-game {
-  font-size: 2.2rem;
+  font-size: 2.5rem;
   font-weight: 800;
   color: #ffffff;
-  margin: 0 0 12px 0;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  margin: 0 0 14px 0;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
 }
 
+/* 進捗バーの外枠（横幅と縦幅を大きく変更） */
 .gauge-bar-outer-game {
-  width: 320px;
-  height: 12px;
+  width: 600px;
+  height: 24px;
   background: rgba(36, 64, 97, 0.4);
-  border: 1px solid rgba(143, 180, 255, 0.3);
+  border: 2px solid rgba(143, 180, 255, 0.4);
   border-radius: 999px;
   overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  box-shadow: inset 0 3px 6px rgba(0,0,0,0.6);
 }
 
 .gauge-bar-inner-game {
   height: 100%;
   background: linear-gradient(90deg, #64ffda, #8fb4ff);
-  box-shadow: 0 0 10px #64ffda;
+  box-shadow: 0 0 15px #64ffda;
   transition: width 0.1s ease-out;
 }
 
-.hud-right-top {
-  grid-column: 2;
-  grid-row: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-end;
-  z-index: 10;
-}
-
-.timer-title {
-  font-size: 0.85rem;
-  color: #8fb4ff;
-  letter-spacing: 0.2em;
-}
-
-.timer-display-game {
-  font-size: 3.2rem;
-  font-weight: 700;
-  font-family: monospace;
-  color: #64ffda;
-  text-shadow: 0 0 15px rgba(100, 255, 218, 0.4);
-}
-.timer-display-game span {
-  font-size: 1.5rem;
-  margin-left: 2px;
-}
-.timer-low-game {
-  color: #ff5e7e;
-  text-shadow: 0 0 15px rgba(255, 94, 126, 0.5);
-  animation: pulse-timer 0.5s ease-in-out infinite alternate;
-}
-
-/* 中央：メインビュー（画像表示エリア） */
+/* 中央：メインビュー（画像表示エリアの縦幅バランスを調整） */
 .hud-center-view {
-  grid-column: 1 / span 2;
-  grid-row: 2;
+  grid-row: 3;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
   width: 100%;
   height: 100%;
-  padding: 10px 0;
+  padding: 0;
 }
 
 .main-visual-large {
   width: 100%;
-  /* ★すべての操作画像の高さを画面縦幅の「65%」にガチっと固定統一 */
-  height: 65vh; 
-  max-height: 65vh;
+  height: 60vh;
+  max-height: 60vh;
   max-width: 1100px; 
   object-fit: contain;
   z-index: 5;
