@@ -53,6 +53,8 @@ const calibrateGyro = (accel) => {
   gyroCalibration.value = { ...accel };
 };
 
+const pressedButtonCount = ref(0); // 押されている対象ボタンの数（0〜11）
+
 /**
  * ★シンプル位置調整：横位置（X軸）
  * 複雑な自動計算を廃止し、画面の完全中央（centerX）から何ピクセル左に動かすかで指定します。
@@ -240,13 +242,17 @@ const handleInputReport = (event) => {
   const { data } = event;
   const config = GEM_CONFIG[selectedGemKey.value] || GEM_CONFIG.RUBY;
 
-  const b3 = data.getUint8(3);
-  const b4 = data.getUint8(4);
-  if (currentStep.value.id.includes('mash') && b4 !== 0x00 && b4 !== lastButtonState.value) {
+  const b2 = data.getUint8(2); // 右Joy-Conのボタン
+  const b3 = data.getUint8(3); // 共有ボタン
+  const b4 = data.getUint8(4); // 左Joy-Conのボタン
+  
+  // 左右どちらかのボタンが押されていて、前回の状態から変化していれば連打と判定
+  const currentMashState = b2 | b4; 
+  if (currentStep.value.id.includes('mash') && currentMashState !== 0x00 && currentMashState !== lastButtonState.value) {
     performAction(6);
     sendVibration(hidDevice.value, packetCounter++, config.vibration);
   }
-  lastButtonState.value = b4;
+  lastButtonState.value = currentMashState;
 
   const currentAccel = { 
     x: data.getInt16(12, true), 
@@ -291,6 +297,23 @@ const handleInputReport = (event) => {
     }
   }
   lastAccel.value = currentAccel;
+
+  // --- 圧力をかける動作（press_all）の判定 ---
+  if (currentStep.value.id.includes('press_all')) {
+    // 左右すべてのボタン入力状態を抽出
+    let activeB2 = b2 & 0xFF; // 右ボタン全部
+    let activeB3 = b3 & 0x3F; // 共有ボタン全部（6種類）
+    let activeB4 = b4 & 0xFF; // 左ボタン全部
+    
+    let count = 0;
+    // 押されている全ボタンの数をカウント
+    while(activeB2 > 0) { count += activeB2 & 1; activeB2 >>= 1; }
+    while(activeB3 > 0) { count += activeB3 & 1; activeB3 >>= 1; }
+    while(activeB4 > 0) { count += activeB4 & 1; activeB4 >>= 1; }
+    
+    // 現在押されている数を変数に保存
+    pressedButtonCount.value = count;
+  }
 };
 
 const throttle = (ms) => {
@@ -305,6 +328,7 @@ onMounted(() => {
     if (key === 'r' && currentStep.value.id.includes('rotate')) progress.value = Math.min(progress.value + 5, PROGRESS_MAX);
     if (key === 's' && currentStep.value.id.includes('shake')) progress.value = Math.min(progress.value + 8, PROGRESS_MAX);
     if (key === 'm' && currentStep.value.id.includes('mash')) progress.value = Math.min(progress.value + 6, PROGRESS_MAX);
+    if (key === 'p' && currentStep.value.id.includes('press_all')) progress.value = Math.min(progress.value + 6, PROGRESS_MAX);
     if (key === 'arrowup' && currentStep.value.id.includes('pointer')) gyroCursor.value.y = Math.max(0, gyroCursor.value.y - 20);
     if (key === 'arrowdown' && currentStep.value.id.includes('pointer')) gyroCursor.value.y = Math.min(window.innerHeight, gyroCursor.value.y + 20);
     if (key === 'c' && currentStep.value.id.includes('pointer')) resetPointerJudgement();
@@ -337,6 +361,27 @@ onMounted(() => {
           if (progress.value < PROGRESS_MAX) progress.value = Math.min(progress.value + (diff * 2.5), PROGRESS_MAX);
         }
         lastAngle.value = curAngle;
+      }
+    }
+
+    // --- 圧力をかける動作（press_all）のプログレス加算 ---
+    if (currentStep.value?.id.includes('press_all')) {
+      if (pressedButtonCount.value > 0) {
+        // 目標：10個のボタンを押していればMAXスピード
+        const REQUIRED_BUTTONS = 10;
+        
+        // timeLimit（秒）でピッタリ100%になる1ループあたりの最大増加量
+        const maxGainPerLoop = PROGRESS_MAX / (currentStep.value.timeLimit * 10);
+        
+        // 押している数（MAXを10で頭打ちさせる）
+        const effectiveCount = Math.min(pressedButtonCount.value, REQUIRED_BUTTONS);
+        const gain = maxGainPerLoop * (effectiveCount / REQUIRED_BUTTONS);
+        
+        progress.value = Math.min(progress.value + gain, PROGRESS_MAX);
+        
+        // 1個でもボタンを押していれば振動を鳴らす
+        const config = GEM_CONFIG[selectedGemKey.value] || GEM_CONFIG.RUBY;
+        sendVibration(hidDevice.value, packetCounter++, config.vibration);
       }
     }
 
