@@ -228,6 +228,15 @@ const resultGemImageSrc = computed(() => {
   return selectedGem.value?.resultImage || '';
 });
 
+// 鑑定日（今日の日付）を生成
+const appraisalDate = computed(() => {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}.${mm}.${dd}`;
+});
+
 const lastButtonState = ref(0); 
 let packetCounter = 0; 
 
@@ -508,15 +517,22 @@ const startApp = async (simulate) => {
       </div>
     </div>
 
-    <div v-if="currentScreen === 'result'" class="screen-box">
-      <div class="result-panel">
-        <p class="result-badge">RESULT</p>
-        <h1 class="glow-text result-title">完成！</h1>
-        <p class="result-msg">{{ selectedGem.name }} が出来上がりました。</p>
-        <img v-if="resultGemImageSrc" :src="resultGemImageSrc" :alt="`${selectedGem.name}-image`" class="result-gem-image" />
-        <p class="result-price">{{ finalPrice.toLocaleString() }}円</p>
-        <p class="result-score">達成度 {{ (averageProgressRate * 100).toFixed(1) }}%</p>
-        <button class="blue-btn-main result-retry-btn" @click="currentScreen = 'select'">もう一度作る</button>
+    <div v-if="currentScreen === 'result'" class="result-screen-bg">
+      <div class="result-content-container">
+        
+        <div class="result-left-area">
+          <img v-if="resultGemImageSrc" :src="resultGemImageSrc" :alt="`${selectedGem.name}-image`" class="result-gem-image-paper" />
+          <p class="gem-name-label">完成品：{{ selectedGem.name }}</p>
+        </div>
+
+        <div class="result-right-area">
+          <p class="overlay-price">{{ finalPrice.toLocaleString() }}<span class="unit">円</span></p>
+          <p class="overlay-score">{{ (averageProgressRate * 100).toFixed(1) }}<span class="unit">%</span></p>
+          <p class="overlay-date">{{ appraisalDate }}</p>
+        </div>
+        
+        <button class="black-btn-main result-retry-btn-paper" @click="currentScreen = 'select'">もう一度作る</button>
+      
       </div>
     </div>
   </div>
@@ -746,21 +762,133 @@ const startApp = async (simulate) => {
   text-shadow: 0 0 16px rgba(255, 209, 102, 0.4); 
 }
 
+/* --- 紙風リザルト画面のスタイル --- */
+/* 外枠：画面全体を覆い、余白を埋める */
+.result-screen-bg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* ★重要：16:9の比率を保ったまま画面内に最大化するコンテナ */
+.result-content-container {
+  position: relative;
+  /* 16:9のアスペクト比を維持しつつ、画面からはみ出さない設定 */
+  width: 100vw;
+  height: 56.25vw; /* 100 * 9 / 16 */
+  max-height: 100vh;
+  max-width: 177.78vh; /* 100 * 16 / 9 */
+  
+  /* コンテナを基準にした相対サイズ(cqw)を使うための宣言 */
+  container-type: inline-size;
+  
+  /* このコンテナに背景画像を設定する */
+  background-image: url('/src/assets/images/result_bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* --- 左側：宝石エリア --- */
+.result-gem-image-paper {
+  position: absolute;
+  top: 63%; 
+  left: 25%;
+  transform: translate(-50%, -50%);
+  width: 26cqw; 
+  height: auto;
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.15));
+}
+
+.gem-name-label {
+  position: absolute;
+  top: 36%; 
+  left: 25%;
+  transform: translateX(-50%);
+  font-size: 2.8cqw;
+  font-weight: bold;
+  color: #1a1a1a;
+  font-family: "Yu Mincho", "MS PMincho", serif;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-align: center;
+  width: 40%;
+}
+
+/* --- 右側：調査報告書エリア --- */
+.result-right-area {
+  position: absolute;
+  top: 0; right: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; /* テキスト上のクリックを透過 */
+}
+.overlay-price, .overlay-score, .overlay-date {
+  position: absolute;
+  color: #222;
+  font-family: "Yu Mincho", "MS PMincho", serif;
+  margin: 0;
+  width: 32%; /* テキストエリアの幅 */
+  text-align: center;
+}
+
+.overlay-price {
+  top: 46.5%;
+  left: 60%;
+  font-size: 4.5cqw;
+  font-weight: bold;
+}
+.overlay-score {
+  top: 71%;
+  left: 60%;
+  font-size: 4.5cqw;
+  font-weight: bold;
+}
+.unit {
+  font-size: 3.5cqw;
+  margin-left: 1.0cqw;
+}
+
+.overlay-date {
+  top: 88%;
+  left: 75.5%;
+  font-size: 2.6cqw;
+  font-weight: bold;
+  text-align: left;
+}
+
+.result-retry-btn-paper {
+  position: absolute;
+  bottom: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111111;
+  color: #ffffff;
+  border: 1px solid #999999; 
+  padding: 1.0cqw 3.5cqw;
+  border-radius: 0;
+  font-size: 1.8cqw;
+  font-family: "Yu Mincho", "MS PMincho", serif;
+  letter-spacing: 0.25em;
+  text-indent: 0.25em; 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.result-retry-btn-paper:hover {
+  background: #ffffff;
+  color: #111111;
+  border-color: #111111;
+  transform: translateX(-50%) scale(1.03);
+}
+
 @keyframes pulse-timer {
   0% { opacity: 0.7; }
   100% { opacity: 1; }
 }
-
-.gauge-value { margin-top: 8px; font-size: 0.95rem; color: #8fb4ff; letter-spacing: 0.04em; }
-.result-msg { font-size: 1.5rem; margin-bottom: 14px; color: #ccd6f6; }
-.result-panel { width: min(560px, 92vw); margin: 0 auto; padding: 28px 20px 30px; border-radius: 24px; border: 1px solid rgba(100, 255, 218, 0.16); background: linear-gradient(180deg, rgba(8, 24, 48, 0.92), rgba(12, 33, 66, 0.84)); box-shadow: 0 18px 50px rgba(2, 8, 20, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04); text-align: center; }
-.result-badge { display: inline-block; margin: 0 0 10px; padding: 6px 14px; border-radius: 999px; background: rgba(100, 255, 218, 0.12); color: #8fb4ff; letter-spacing: 0.22em; font-size: 0.78rem; }
-.result-title { margin-top: 8px; margin-bottom: 8px; }
-/*
-.result-rank { margin: 10px 0 6px; font-size: 1.8rem; letter-spacing: 0.1em; font-weight: 700; color: #64ffda; text-shadow: 0 0 16px rgba(100, 255, 218, 0.4); }
-.result-stars { display: flex; width: 100%; justify-content: center; margin: 4px auto 14px; transform: scale(1.1); transform-origin: center; }
-*/
-.result-gem-image { display: block; width: min(360px, 74vw); max-height: 230px; object-fit: contain; margin: 10px auto 12px; filter: drop-shadow(0 0 14px rgba(143, 180, 255, 0.35)); }
-.result-score { margin: 0 0 24px; font-size: 1rem; color: #8fb4ff; }
-.result-retry-btn { margin-top: 4px; }
 </style>
