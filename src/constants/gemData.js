@@ -7,6 +7,7 @@ export const GEM_DATA = {
     name: 'ルビー',
     method: 'ベルヌーイ法',
     resultImage: "/src/assets/images/ruby.png",
+    maxPrice: 5000,
     steps: [
       { id: 'centrifugal', label: '酸化アルミニウム投入', timeLimit: 10, hint: '粉を混ぜよう！', image: "/src/assets/images/mix.png" },
       { id: 'pointer', label: '温度調整', timeLimit: 20, hint: '電気炉の温度を合わせて！', image: "/src/assets/images/group.png",  targets: [250, 500, 750, 1000, 1250, 1500, 1750, 2000]},
@@ -17,6 +18,7 @@ export const GEM_DATA = {
     name: 'サファイア',
     method: 'ベルヌーイ法',
     resultImage: "/src/assets/images/sapphire.png",
+    maxPrice: 2000,
     steps: [
       { id: 'long_press', label: '原料投入', timeLimit: 10, hint: 'Aボタン長押し!', image: "" },
       { id: 'rotate', label: '結晶成長', timeLimit: 15, hint: 'スティックまたは本体を回せ！', image: "" },
@@ -56,6 +58,7 @@ export const GEM_DATA = {
     name: 'ダイヤモンド',
     method: 'HPHT法',
     resultImage: "/src/assets/images/diamond.png",
+    maxPrice: 200000,
     steps: [
       { id: 'rotate', label: '超高圧印加', timeLimit: 20, hint: 'スティック回転！', image: "/src/assets/images/diamond.png" },
       { id: 'press_shake', label: '超高温加熱', timeLimit: 15, hint: 'Aを押しながら振れ!', image: "/src/assets/images/diamond.png" }

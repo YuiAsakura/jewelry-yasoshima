@@ -208,12 +208,20 @@ const resetGameWithPointerInit = (key) => {
   }
 };
 
+/*
 const rankValue = computed(() => {
   if (gameRank.value === 'S') return 3;
   if (gameRank.value === 'A') return 2;
   if (gameRank.value === 'B') return 1;
   return 0;
 });
+*/
+
+const finalPrice = computed(() => {
+  const maxPrice = selectedGem.value?.maxPrice || 0;
+  return Math.floor(maxPrice * averageProgressRate.value);
+});
+
 const resultGemImageSrc = computed(() => {
   return selectedGem.value?.resultImage || '';
 });
@@ -458,12 +466,11 @@ const startApp = async (simulate) => {
     <div v-if="currentScreen === 'result'" class="screen-box">
       <div class="result-panel">
         <p class="result-badge">RESULT</p>
-        <Vue3StarRatings :model-value="rankValue" :number-of-stars="3" :star-size="62" star-color="#ffd166" inactive-color="#244061" :disable-click="true" class="result-stars" />
         <h1 class="glow-text result-title">完成！</h1>
         <p class="result-msg">{{ selectedGem.name }} が出来上がりました。</p>
         <img v-if="resultGemImageSrc" :src="resultGemImageSrc" :alt="`${selectedGem.name}-image`" class="result-gem-image" />
-        <p class="result-rank">RANK {{ gameRank }}</p>
-        <p class="result-score">達成率 {{ (averageProgressRate * 100).toFixed(1) }}%</p>
+        <p class="result-price">{{ finalPrice.toLocaleString() }}円</p>
+        <p class="result-score">達成度 {{ (averageProgressRate * 100).toFixed(1) }}%</p>
         <button class="blue-btn-main result-retry-btn" @click="currentScreen = 'select'">もう一度作る</button>
       </div>
     </div>
@@ -685,6 +692,15 @@ const startApp = async (simulate) => {
   margin: 0;
 }
 
+.result-price { 
+  margin: 10px 0 6px; 
+  font-size: 2.2rem; 
+  letter-spacing: 0.05em; 
+  font-weight: 800; 
+  color: #ffd166; 
+  text-shadow: 0 0 16px rgba(255, 209, 102, 0.4); 
+}
+
 @keyframes pulse-timer {
   0% { opacity: 0.7; }
   100% { opacity: 1; }
@@ -695,8 +711,10 @@ const startApp = async (simulate) => {
 .result-panel { width: min(560px, 92vw); margin: 0 auto; padding: 28px 20px 30px; border-radius: 24px; border: 1px solid rgba(100, 255, 218, 0.16); background: linear-gradient(180deg, rgba(8, 24, 48, 0.92), rgba(12, 33, 66, 0.84)); box-shadow: 0 18px 50px rgba(2, 8, 20, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04); text-align: center; }
 .result-badge { display: inline-block; margin: 0 0 10px; padding: 6px 14px; border-radius: 999px; background: rgba(100, 255, 218, 0.12); color: #8fb4ff; letter-spacing: 0.22em; font-size: 0.78rem; }
 .result-title { margin-top: 8px; margin-bottom: 8px; }
+/*
 .result-rank { margin: 10px 0 6px; font-size: 1.8rem; letter-spacing: 0.1em; font-weight: 700; color: #64ffda; text-shadow: 0 0 16px rgba(100, 255, 218, 0.4); }
 .result-stars { display: flex; width: 100%; justify-content: center; margin: 4px auto 14px; transform: scale(1.1); transform-origin: center; }
+*/
 .result-gem-image { display: block; width: min(360px, 74vw); max-height: 230px; object-fit: contain; margin: 10px auto 12px; filter: drop-shadow(0 0 14px rgba(143, 180, 255, 0.35)); }
 .result-score { margin: 0 0 24px; font-size: 1rem; color: #8fb4ff; }
 .result-retry-btn { margin-top: 4px; }
