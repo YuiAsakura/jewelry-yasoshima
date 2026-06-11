@@ -453,17 +453,25 @@ const startApp = async (simulate) => {
       </div>
     </div>
 
-    <div v-if="currentScreen === 'select'" class="screen-box">
-      <h2 class="sub-title">SELECT GEM</h2>
-      <div class="gem-grid">
+    <div v-if="currentScreen === 'select'" class="select-screen-bg">
+      <div class="select-header">
+        <h2 class="select-title-luxury">SELECT GEM</h2>
+        <p class="select-sub-text">作る宝石を選んでください</p>
+      </div>
+
+      <div class="gem-grid-luxury">
         <div 
           v-for="(gem, key) in GEM_DATA" 
           :key="key" 
-          class="gem-card"
+          class="gem-card-luxury"
           @click="resetGameWithPointerInit(key)"
         >
-          <div class="gem-name">{{ gem.name }}</div>
-          <div class="gem-method">{{ gem.method }}</div>
+          <div class="gem-image-wrapper">
+            <img v-if="gem.resultImage" :src="gem.resultImage" :alt="gem.name" class="gem-card-image" />
+          </div>
+          
+          <div class="gem-name-luxury">{{ gem.name }}</div>
+          <div class="gem-method-luxury">{{ gem.method }}</div>
         </div>
       </div>
     </div>
@@ -991,6 +999,131 @@ const startApp = async (simulate) => {
   background: #ffffff;
   border-color: #999999;
   color: #111111;
+}
+
+/* --- 宝石選択画面 --- */
+.select-screen-bg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: #faf9f6; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10vh;
+  z-index: 100;
+}
+
+.select-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.select-title-luxury {
+  font-family: "Yu Mincho", "MS PMincho", serif;
+  font-size: 3.5rem;
+  font-weight: normal;
+  color: #111111;
+  letter-spacing: 0.15em;
+  margin: 0 0 10px 0;
+}
+
+.select-sub-text {
+  font-family: "Yu Mincho", "MS PMincho", serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #666666;
+  letter-spacing: 0.2em;
+  margin-bottom: 25px;
+}
+
+/* 宝石を並べるグリッド（ショーケース風） */
+.gem-grid-luxury {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3列に並べる */
+  gap: 30px;
+  max-width: 1000px;
+  width: 90%;
+}
+
+/* --- 宝石のカードデザイン --- */
+.gem-card-luxury {
+  background: #ffffff;
+  /* ★通常時は透明な枠線にしておく（レイアウトズレ防止） */
+  border: 2px solid transparent; 
+  padding: 30px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+/* ★ホバー（選択中）時のアクションを強化 */
+.gem-card-luxury:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  /* ★マウスが乗ると黒い枠線を表示して選択中であることを明確に */
+  border: 2px solid #111111; 
+}
+
+/* ★追加：宝石画像のラッパー（高さを固定して文字位置を揃える） */
+.gem-image-wrapper {
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* ★追加：宝石画像本体のアニメーション */
+.gem-card-image {
+  max-width: 100px;
+  max-height: 100px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+  transition: transform 0.3s ease;
+}
+
+/* マウスが乗ると宝石が少し大きくなる */
+.gem-card-luxury:hover .gem-card-image {
+  transform: scale(1.15);
+}
+
+.gem-name-luxury {
+  font-family: "Yu Mincho", "MS PMincho", serif;
+  font-size: 1.8rem;
+  color: #111111;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+/* 製造法（合成法）のテキスト */
+.gem-method-luxury {
+  font-family: sans-serif;
+  font-size: 0.9rem;
+  color: #888888;
+  letter-spacing: 0.05em;
+  font-weight: bold;
+}
+
+.gem-name-luxury {
+  font-family: "Yu Mincho", "MS PMincho", serif;
+  font-size: 1.8rem;
+  color: #111111;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  margin-bottom: 15px;
+}
+
+/* 製造法（合成法）のテキスト */
+.gem-method-luxury {
+  font-family: sans-serif; /* ここだけゴシック体にして読みやすく現代風に */
+  font-size: 0.9rem;
+  color: #888888;
+  letter-spacing: 0.05em;
+  font-weight: bold;
 }
 
 @keyframes pulse-timer {
