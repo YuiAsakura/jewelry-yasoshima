@@ -25,6 +25,7 @@ export const GEM_DATA = {
       { id: 'shake', label: '研磨', timeLimit: 10, hint: '力強く振れ！', image: "" }
     ]
   },
+  /*
   emerald: {
     name: 'エメラルド',
     method: 'フラックス法',
@@ -54,6 +55,7 @@ export const GEM_DATA = {
       { id: 'long_press', label: '放射線照射', timeLimit: 12, hint: 'Aボタン長押し!', image: "" }
     ]
   },
+  */
   diamond: {
     name: 'ダイヤモンド',
     method: 'HPHT法',
