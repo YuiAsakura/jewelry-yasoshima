@@ -60,7 +60,7 @@ export const GEM_DATA = {
     resultImage: "/src/assets/images/diamond.png",
     maxPrice: 2000000,
     steps: [
-      { id: 'rotate', label: '超高圧印加', timeLimit: 20, hint: 'スティック回転！', image: "/src/assets/images/diamond.png" },
+      { id: 'press_all', label: '超高圧印加', timeLimit: 20, hint: 'スティック回転！', image: "/src/assets/images/diamond.png" },
       { id: 'press_shake', label: '超高温加熱', timeLimit: 15, hint: 'Aを押しながら振れ!', image: "/src/assets/images/diamond.png" }
     ]
   }
