@@ -444,6 +444,7 @@ const startApp = async (simulate) => {
       <div class="title-content">
         <h1 class="title-text-luxury">JEWELRY YASOSHIMA</h1>
         <p class="title-sub-text">Lab-Grown Gemstone Simulator</p>
+        <p class="title-jp-description"> ～ 人工宝石シミュレーター 〜 </p>
         
         <div class="btn-group-luxury">
           <button class="black-btn-luxury" @click="startApp(false)">JOY-CON 接続</button>
@@ -925,11 +926,21 @@ const startApp = async (simulate) => {
 
 .title-sub-text {
   font-family: "Yu Mincho", "MS PMincho", serif;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   color: #666666;
   letter-spacing: 0.4em;
   text-indent: 0.4em;
-  margin-bottom: 80px; /* ボタンとの余白をたっぷりとる */
+  margin-bottom: 0px; 
+}
+
+.title-jp-description {
+  font-family: "Yu Mincho", "MS PMincho", serif;
+  font-size: 1.5rem; 
+  color: #222222;
+  letter-spacing: 0.2em; 
+  text-indent: 0.3em; 
+  margin-bottom: 100px;
+  font-weight: 600;
 }
 
 .btn-group-luxury {
