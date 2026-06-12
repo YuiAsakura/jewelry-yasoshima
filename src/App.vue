@@ -2,9 +2,9 @@
 import { onMounted, ref, computed, watch } from 'vue';
 import { useJoyCon } from './composites/useJoyCon';
 import { useGameState, PROGRESS_MAX } from './composites/useGameState';
-import VisualArea from './components/VisualArea.vue';
 import TitleScreen from './components/screens/TitleScreen.vue';
 import GemSelectScreen from './components/screens/GemSelectScreen.vue';
+import GameScreen from './components/screens/GameScreen.vue';
 import { GEM_DATA } from './constants/gemData';
 import Vue3StarRatings from 'vue3-star-ratings';
 
@@ -446,59 +446,22 @@ const startApp = async (simulate) => {
 
     <GemSelectScreen v-if="currentScreen === 'select'" @select-gem="resetGameWithPointerInit" />
 
-    <div v-if="currentScreen === 'game'" class="game-layout"> 
-      <div v-if="isCountingDown" class="countdown-overlay">
-        <div class="countdown-number" :class="{ 'start-text': Math.ceil(countdown) <= 0 }">
-          {{ Math.ceil(countdown) > 0 ? Math.ceil(countdown) : 'START!' }}
-        </div>
-        <div class="countdown-label" v-if="Math.ceil(countdown) > 0">READY</div>
-      </div>
-
-      <Transition name="neon-fade">
-        <div v-if="isStepChanging" class="step-transition-overlay">
-          <div class="neon-instruction-text">{{ stepChangeText }}</div>
-        </div>
-      </Transition>
-
-    <div class="game-hud-container">
-        
-        <div class="hud-right-top">
-          <div class="timer-title">TIME</div>
-          <div class="timer-display-game" :class="{ 'timer-low-game': timeLeft < 5 }">
-            {{ timeLeft.toFixed(1) }}<span>s</span>
-          </div>
-        </div>
-
-        <div class="hud-center-top">
-          <div class="step-badge">STEP {{ currentStepIndex + 1 }}</div>
-          <h2 class="step-title-game">{{ currentStep.label }}</h2>
-          
-          <div class="gauge-bar-outer-game">
-            <div class="gauge-bar-inner-game" :style="{ width: Math.min((progress / PROGRESS_MAX) * 100, 100) + '%' }"></div>
-          </div>
-        </div>
-
-        <div class="hud-center-view">
-          
-          <VisualArea :step="currentStep" class="main-visual-large" />
-          
-          <div v-if="currentStep?.id.includes('pointer')" class="pointer-overlay-layer">
-            <div 
-              class="pointer-target" 
-              :class="{ 'target-locking': isLockingOn }"
-              :style="{ left: FIXED_X_POSITION + 'px', top: pointerTarget.y + 'px' }"
-            ></div>
-            
-            <div class="pointer-cursor" :style="{ left: FIXED_X_POSITION + 'px', top: gyroCursor.y + 'px' }"></div>
-          </div>
-
-        </div>
-
-        <p v-if="isSimulated" class="debug-hint-game">
-          [R]回転 [S]振る [M]連打 [矢印キー]ポインター移動 [C]リセット
-        </p>
-      </div>
-    </div>
+    <GameScreen 
+      v-if="currentScreen === 'game'"
+      :is-counting-down="isCountingDown"
+      :countdown="countdown"
+      :is-step-changing="isStepChanging"
+      :step-change-text="stepChangeText"
+      :time-left="timeLeft"
+      :current-step-index="currentStepIndex"
+      :current-step="currentStep"
+      :progress="progress"
+      :is-simulated="isSimulated"
+      :is-locking-on="isLockingOn"
+      :pointer-target="pointerTarget"
+      :gyro-cursor="gyroCursor"
+      :fixed-x="FIXED_X_POSITION"
+    />
 
     <div v-if="currentScreen === 'result'" class="result-screen-bg">
       <div class="result-content-container">
@@ -522,215 +485,6 @@ const startApp = async (simulate) => {
 </template>
 
 <style>
-/* --- 全体レイアウト --- */
-.game-layout {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background: #faf9f6; 
-  background-image: radial-gradient(circle at center, #ffffff 0%, #f0ede6 100%);
-  z-index: 1;
-}
-
-.game-hud-container {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto auto 1fr;
-  width: 100%;
-  height: 100%;
-  padding: 15px 40px;
-  box-sizing: border-box;
-}
-
-/* --- タイマー周り --- */
-.hud-right-top {
-  grid-row: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  z-index: 20;
-  position: absolute;
-  top: 20px;
-  right: 40px;
-}
-
-.timer-title {
-  font-size: 1.2rem;
-  color: #888888; /* 落ち着いたグレー */
-  letter-spacing: 0.2em;
-  font-family: "Yu Mincho", "MS PMincho", serif;
-  margin-bottom: 2px;
-}
-
-.timer-display-game {
-  font-size: 4.8rem; 
-  font-weight: normal; /* 太字を解除してスタイリッシュに */
-  font-family: "Yu Mincho", "MS PMincho", serif; /* 明朝体に統一 */
-  color: #111111; /* 黒に変更 */
-  text-shadow: none; /* ネオンの光彩を消去 */
-  line-height: 1.1;
-}
-.timer-display-game span {
-  font-size: 2rem;
-  margin-left: 4px;
-  color: #666666;
-}
-.timer-low-game {
-  color: #b30000; /* ピンチの時は落ち着いた深い赤色 */
-  animation: pulse-timer 1s ease-in-out infinite alternate;
-}
-
-/* --- STEPとタイトル --- */
-.hud-center-top {
-  grid-row: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  margin-top: 10px;
-  margin-bottom: 5px;
-  z-index: 10;
-}
-
-.step-badge {
-  font-size: 1.1rem;
-  color: #666666;
-  letter-spacing: 0.25em;
-  font-family: "Yu Mincho", "MS PMincho", serif;
-  margin-bottom: 4px;
-}
-
-.step-title-game {
-  font-size: 2.5rem;
-  font-weight: normal;
-  color: #111111;
-  font-family: "Yu Mincho", "MS PMincho", serif;
-  letter-spacing: 0.1em;
-  margin: 0 0 20px 0;
-  text-shadow: none; /* 光彩を消去 */
-}
-
-/* 進捗バーの外枠 */
-.gauge-bar-outer-game {
-  width: 600px;
-  height: 24px; 
-  background: #dcdcdc;
-  border: 1px solid #111111;
-  border-radius: 0; 
-  overflow: hidden;
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
-}
-
-/* 進捗バーの中身 */
-.gauge-bar-inner-game {
-  height: 100%;
-  background: linear-gradient(90deg, #aa822c, #d4af37);
-  box-shadow: none; 
-  transition: width 0.1s ease-out;
-}
-
-/* --- メインビュー --- */
-.hud-center-view {
-  grid-row: 3;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-}
-
-.main-visual-large {
-  width: 100%;
-  height: 60vh;
-  max-height: 60vh;
-  max-width: 1100px; 
-  object-fit: contain;
-  z-index: 5;
-}
-
-/* --- ポインター（温度計） --- */
-.pointer-overlay-layer {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 10; pointer-events: none;
-}
-
-/* 目標温度のライン */
-.pointer-target {
-  position: fixed;
-  width: 150px; 
-  height: 4px;
-  background-color: #cccccc; /* 通常時は控えめなグレー */
-  border-radius: 0;
-  box-shadow: none;
-  transform: translate(-50%, -50%);
-  transition: background-color 0.2s, box-shadow 0.2s;
-}
-
-/* ロックオン（キープ中）のエフェクト */
-.pointer-target.target-locking {
-  background-color: #d4af37 !important; /* ゴールドに光る */
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4) !important; 
-}
-
-/* 操作カーソルライン */
-.pointer-cursor {
-  position: fixed;
-  width: 130px; 
-  height: 2px; /* 鋭く細い線に */
-  background-color: #111111; /* シャープな黒 */
-  border-radius: 0;
-  box-shadow: none;
-  transform: translate(-50%, -50%);
-}
-
-/* --- ステップ切り替え時の指示テキスト --- */
-.step-transition-overlay {
-  position: absolute; 
-  top: 0; left: 0; 
-  width: 100%; height: 100%; 
-  background: rgba(255, 255, 255, 0.65); 
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 99;
-}
-
-/* クラス名は neon のままですが、中身は高級テキストになっています */
-.neon-instruction-text {
-  font-size: 3.5rem;
-  font-weight: normal;
-  font-family: "Yu Mincho", "MS PMincho", serif;
-  color: #111111;
-  text-align: center;
-  padding: 0 30px;
-  letter-spacing: 0.15em;
-  text-shadow: none; /* ネオン発光を消去 */
-}
-
-.debug-hint-game {
-  position: absolute;
-  bottom: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.8rem;
-  color: #999999;
-  margin: 0;
-}
-
-.result-price { 
-  margin: 10px 0 6px; 
-  font-size: 2.2rem; 
-  letter-spacing: 0.05em; 
-  font-weight: 800; 
-  color: #ffd166; 
-  text-shadow: 0 0 16px rgba(255, 209, 102, 0.4); 
-}
-
 /* --- 紙風リザルト画面のスタイル --- */
 /* 外枠：画面全体を覆い、余白を埋める */
 .result-screen-bg {
@@ -872,10 +626,5 @@ const startApp = async (simulate) => {
   color: #888888;
   letter-spacing: 0.05em;
   font-weight: bold;
-}
-
-@keyframes pulse-timer {
-  0% { opacity: 0.7; }
-  100% { opacity: 1; }
 }
 </style>
