@@ -439,7 +439,7 @@ const startApp = async (simulate) => {
 </script>
 
 <template>
-  <div class="app-ui-blue">
+  <div class="app-ui-luxury">
     <div v-if="currentScreen === 'title'" class="title-screen-bg">
       <div class="title-content">
         <h1 class="title-text-luxury">JEWELRY YASOSHIMA</h1>
@@ -490,7 +490,7 @@ const startApp = async (simulate) => {
         </div>
       </Transition>
 
-    <div class="game-hud-container" :class="{ 'ui-blur': isCountingDown || isStepChanging }">
+    <div class="game-hud-container">
         
         <div class="hud-right-top">
           <div class="timer-title">TIME</div>
@@ -558,21 +558,22 @@ const startApp = async (simulate) => {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: #040d1a;
+  background: #faf9f6; 
+  background-image: radial-gradient(circle at center, #ffffff 0%, #f0ede6 100%);
+  z-index: 1;
 }
 
-/* 全体構造を3段のグリッドに変更して中央に整列しやすくします */
 .game-hud-container {
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: auto auto 1fr; /* タイマー / 中央情報 / 画像 の3段 */
+  grid-template-rows: auto auto 1fr;
   width: 100%;
   height: 100%;
   padding: 15px 40px;
   box-sizing: border-box;
 }
 
-/* タイマーを右上に絶対配置するためのエリア */
+/* --- タイマー周り --- */
 .hud-right-top {
   grid-row: 1;
   display: flex;
@@ -584,41 +585,39 @@ const startApp = async (simulate) => {
   right: 40px;
 }
 
-/* ★復活＆サイズアップ：タイマーのテキストスタイル */
 .timer-title {
   font-size: 1.2rem;
-  color: #8fb4ff;
+  color: #888888; /* 落ち着いたグレー */
   letter-spacing: 0.2em;
-  font-weight: 700;
+  font-family: "Yu Mincho", "MS PMincho", serif;
   margin-bottom: 2px;
 }
 
 .timer-display-game {
-  font-size: 4.8rem; /* ガツンと大きく */
-  font-weight: 800;
-  font-family: monospace;
-  color: #64ffda;
-  text-shadow: 0 0 20px rgba(100, 255, 218, 0.6);
+  font-size: 4.8rem; 
+  font-weight: normal; /* 太字を解除してスタイリッシュに */
+  font-family: "Yu Mincho", "MS PMincho", serif; /* 明朝体に統一 */
+  color: #111111; /* 黒に変更 */
+  text-shadow: none; /* ネオンの光彩を消去 */
   line-height: 1.1;
 }
 .timer-display-game span {
   font-size: 2rem;
   margin-left: 4px;
-  font-weight: 500;
+  color: #666666;
 }
 .timer-low-game {
-  color: #ff5e7e;
-  text-shadow: 0 0 20px rgba(255, 94, 126, 0.6);
-  animation: pulse-timer 0.5s ease-in-out infinite alternate;
+  color: #b30000; /* ピンチの時は落ち着いた深い赤色 */
+  animation: pulse-timer 1s ease-in-out infinite alternate;
 }
 
-/* ★STEP数、操作名、バーを画面の横中央にガチッと集約するスタイル */
+/* --- STEPとタイトル --- */
 .hud-center-top {
   grid-row: 2;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center; /* 横方向の中央揃え */
+  align-items: center;
   text-align: center;
   margin-top: 10px;
   margin-bottom: 5px;
@@ -626,39 +625,43 @@ const startApp = async (simulate) => {
 }
 
 .step-badge {
-  font-size: 1rem;
-  color: #8fb4ff;
-  letter-spacing: 0.15em;
+  font-size: 1.1rem;
+  color: #666666;
+  letter-spacing: 0.25em;
+  font-family: "Yu Mincho", "MS PMincho", serif;
   margin-bottom: 4px;
 }
 
 .step-title-game {
   font-size: 2.5rem;
-  font-weight: 800;
-  color: #ffffff;
-  margin: 0 0 14px 0;
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+  font-weight: normal;
+  color: #111111;
+  font-family: "Yu Mincho", "MS PMincho", serif;
+  letter-spacing: 0.1em;
+  margin: 0 0 20px 0;
+  text-shadow: none; /* 光彩を消去 */
 }
 
-/* 進捗バーの外枠（横幅と縦幅を大きく変更） */
+/* 進捗バーの外枠 */
 .gauge-bar-outer-game {
   width: 600px;
-  height: 24px;
-  background: rgba(36, 64, 97, 0.4);
-  border: 2px solid rgba(143, 180, 255, 0.4);
-  border-radius: 999px;
+  height: 24px; 
+  background: #dcdcdc;
+  border: 1px solid #111111;
+  border-radius: 0; 
   overflow: hidden;
-  box-shadow: inset 0 3px 6px rgba(0,0,0,0.6);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
 }
 
+/* 進捗バーの中身 */
 .gauge-bar-inner-game {
   height: 100%;
-  background: linear-gradient(90deg, #64ffda, #8fb4ff);
-  box-shadow: 0 0 15px #64ffda;
+  background: linear-gradient(90deg, #aa822c, #d4af37);
+  box-shadow: none; 
   transition: width 0.1s ease-out;
 }
 
-/* 中央：メインビュー（画像表示エリアの縦幅バランスを調整） */
+/* --- メインビュー --- */
 .hud-center-view {
   grid-row: 3;
   display: flex;
@@ -679,82 +682,65 @@ const startApp = async (simulate) => {
   z-index: 5;
 }
 
-/* ポインター重ね合わせ用の絶対配置レイヤー */
+/* --- ポインター（温度計） --- */
 .pointer-overlay-layer {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10;
-  pointer-events: none;
+  top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 10; pointer-events: none;
 }
 
-/* 目標温度のライン（横線） */
+/* 目標温度のライン */
 .pointer-target {
   position: fixed;
   width: 150px; 
-  height: 6px;
-  background-color: #64ffda;
-  box-shadow: 0 0 12px #64ffda;
-  border-radius: 3px;
+  height: 4px;
+  background-color: #cccccc; /* 通常時は控えめなグレー */
+  border-radius: 0;
+  box-shadow: none;
   transform: translate(-50%, -50%);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 /* ロックオン（キープ中）のエフェクト */
 .pointer-target.target-locking {
-  background-color: #ff9e00 !important; 
-  box-shadow: 0 0 25px #ff9e00, 0 0 10px #ffffff !important; 
+  background-color: #d4af37 !important; /* ゴールドに光る */
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4) !important; 
 }
 
-/* 現在の操作カーソルライン（横線） */
+/* 操作カーソルライン */
 .pointer-cursor {
   position: fixed;
   width: 130px; 
-  height: 4px;
-  background-color: #ffd166;
-  box-shadow: 0 0 12px #ffd166;
-  border-radius: 2px;
+  height: 2px; /* 鋭く細い線に */
+  background-color: #111111; /* シャープな黒 */
+  border-radius: 0;
+  box-shadow: none;
   transform: translate(-50%, -50%);
 }
 
-/* ステップ切り替えトランジション */
+/* --- ステップ切り替え時の指示テキスト --- */
 .step-transition-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(3, 10, 20, 0.85);
-  backdrop-filter: blur(4px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  position: absolute; 
+  top: 0; left: 0; 
+  width: 100%; height: 100%; 
+  background: rgba(255, 255, 255, 0.65); 
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  display: flex; justify-content: center; align-items: center;
   z-index: 99;
 }
 
+/* クラス名は neon のままですが、中身は高級テキストになっています */
 .neon-instruction-text {
-  font-size: 2.8rem;
-  font-weight: 800;
-  color: #ffffff;
+  font-size: 3.5rem;
+  font-weight: normal;
+  font-family: "Yu Mincho", "MS PMincho", serif;
+  color: #111111;
   text-align: center;
   padding: 0 30px;
-  letter-spacing: 0.05em;
-  text-shadow: 
-    0 0 5px #fff,
-    0 0 10px #fff,
-    0 0 20px #fff,
-    0 0 40px rgba(255,255,255,0.6),
-    0 0 80px rgba(255,255,255,0.4);
+  letter-spacing: 0.15em;
+  text-shadow: none; /* ネオン発光を消去 */
 }
-
-.neon-fade-enter-active,
-.neon-fade-leave-active {
-  transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
-}
-.neon-fade-enter-from { opacity: 0; transform: scale(1.15); }
-.neon-fade-leave-to { opacity: 0; transform: scale(0.92); }
 
 .debug-hint-game {
   position: absolute;
@@ -762,7 +748,7 @@ const startApp = async (simulate) => {
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.8rem;
-  color: #4a678a;
+  color: #999999;
   margin: 0;
 }
 
