@@ -15,21 +15,23 @@ export function useGameState() {
   const isCountingDown = ref(false);
   const countdown = ref(3);
 
+  // 画面遷移・演出用の状態
+  const isStepChanging = ref(false);
+  const stepChangeText = ref('');
+
   const selectedGem = computed(() => GEM_DATA[selectedGemKey.value]);
   const currentStep = computed(() => selectedGem.value?.steps[currentStepIndex.value]);
+  
   const averageProgressRate = computed(() => {
     if (!stepProgressRates.value.length) return 0;
-    const total = stepProgressRates.value.reduce((sum, rate) => sum + rate, 0);
-    return total / stepProgressRates.value.length;
-  });
-  const gameRank = computed(() => {
-    if (averageProgressRate.value >= 0.95) return 'S';
-    if (averageProgressRate.value >= 0.8) return 'A';
-    if (averageProgressRate.value >= 0.6) return 'B';
-    return 'C';
+    return stepProgressRates.value.reduce((sum, rate) => sum + rate, 0) / stepProgressRates.value.length;
   });
 
-  const isStepCompleted = computed(() => progress.value >= PROGRESS_MAX);
+  const triggerNeonTransition = () => {
+    stepChangeText.value = currentStep.value?.hint || '';
+    isStepChanging.value = true;
+    setTimeout(() => { isStepChanging.value = false; }, 1250); 
+  };
   
   const resetGame = (key) => {
     selectedGemKey.value = key;
@@ -37,7 +39,6 @@ export function useGameState() {
     progress.value = 0;
     timeLeft.value = GEM_DATA[key].steps[0].timeLimit;
     stepProgressRates.value = [];
-
     isCountingDown.value = true;
     countdown.value = 3;
     lastAngle.value = null;
@@ -45,26 +46,21 @@ export function useGameState() {
   };
 
   const nextStep = () => {
-    const currentRate = Math.min(progress.value / PROGRESS_MAX, 1);
-    stepProgressRates.value.push(currentRate);
-
+    stepProgressRates.value.push(Math.min(progress.value / PROGRESS_MAX, 1));
     progress.value = 0;
     lastAngle.value = null;
     if (currentStepIndex.value < selectedGem.value.steps.length - 1) {
       currentStepIndex.value++;
       timeLeft.value = currentStep.value.timeLimit;
-
-    
     } else {
       currentScreen.value = 'result';
     }
   };
 
   return { 
-    currentScreen, selectedGemKey, selectedGem, 
-    currentStep, currentStepIndex, progress, timeLeft, 
-    lastAngle, resetGame, nextStep,
-    isCountingDown, countdown,
-    averageProgressRate, gameRank
+    currentScreen, selectedGemKey, selectedGem, currentStep, currentStepIndex, 
+    progress, timeLeft, lastAngle, resetGame, nextStep,
+    isCountingDown, countdown, averageProgressRate,
+    isStepChanging, stepChangeText, triggerNeonTransition
   };
 }
