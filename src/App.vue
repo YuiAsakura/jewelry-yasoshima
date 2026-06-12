@@ -5,6 +5,7 @@ import { useGameState, PROGRESS_MAX } from './composites/useGameState';
 import TitleScreen from './components/screens/TitleScreen.vue';
 import GemSelectScreen from './components/screens/GemSelectScreen.vue';
 import GameScreen from './components/screens/GameScreen.vue';
+import ResultScreen from './components/screens/ResultScreen.vue';
 import { GEM_DATA } from './constants/gemData';
 import Vue3StarRatings from 'vue3-star-ratings';
 
@@ -463,168 +464,15 @@ const startApp = async (simulate) => {
       :fixed-x="FIXED_X_POSITION"
     />
 
-    <div v-if="currentScreen === 'result'" class="result-screen-bg">
-      <div class="result-content-container">
-        
-        <div class="result-left-area">
-          <img v-if="resultGemImageSrc" :src="resultGemImageSrc" :alt="`${selectedGem.name}-image`" class="result-gem-image-paper" />
-          <p class="gem-name-label">完成品：{{ selectedGem.name }}</p>
-        </div>
+    <ResultScreen 
+      v-if="currentScreen === 'result'"
+      :result-gem-image-src="resultGemImageSrc"
+      :gem-name="selectedGem?.name"
+      :final-price="finalPrice"
+      :average-progress-rate="averageProgressRate"
+      :appraisal-date="appraisalDate"
+      @retry="currentScreen = 'select'"
+    />
 
-        <div class="result-right-area">
-          <p class="overlay-price">{{ finalPrice.toLocaleString() }}<span class="unit">円</span></p>
-          <p class="overlay-score">{{ (averageProgressRate * 100).toFixed(1) }}<span class="unit">%</span></p>
-          <p class="overlay-date">{{ appraisalDate }}</p>
-        </div>
-        
-        <button class="black-btn-main result-retry-btn-paper" @click="currentScreen = 'select'">もう一度作る</button>
-      
-      </div>
-    </div>
   </div>
 </template>
-
-<style>
-/* --- 紙風リザルト画面のスタイル --- */
-/* 外枠：画面全体を覆い、余白を埋める */
-.result-screen-bg {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background-color: #ffffff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-}
-
-/* ★重要：16:9の比率を保ったまま画面内に最大化するコンテナ */
-.result-content-container {
-  position: relative;
-  /* 16:9のアスペクト比を維持しつつ、画面からはみ出さない設定 */
-  width: 100vw;
-  height: 56.25vw; /* 100 * 9 / 16 */
-  max-height: 100vh;
-  max-width: 177.78vh; /* 100 * 16 / 9 */
-  
-  /* コンテナを基準にした相対サイズ(cqw)を使うための宣言 */
-  container-type: inline-size;
-  
-  /* このコンテナに背景画像を設定する */
-  background-image: url('/src/assets/images/result_bg.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-/* --- 左側：宝石エリア --- */
-.result-gem-image-paper {
-  position: absolute;
-  top: 63%; 
-  left: 25%;
-  transform: translate(-50%, -50%);
-  width: 26cqw; 
-  height: auto;
-  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.15));
-}
-
-.gem-name-label {
-  position: absolute;
-  top: 36%; 
-  left: 25%;
-  transform: translateX(-50%);
-  font-size: 2.8cqw;
-  font-weight: bold;
-  color: #1a1a1a;
-  font-family: "Yu Mincho", "MS PMincho", serif;
-  letter-spacing: 0.08em;
-  margin: 0;
-  text-align: center;
-  width: 40%;
-}
-
-/* --- 右側：調査報告書エリア --- */
-.result-right-area {
-  position: absolute;
-  top: 0; right: 0;
-  width: 100%; height: 100%;
-  pointer-events: none; /* テキスト上のクリックを透過 */
-}
-.overlay-price, .overlay-score, .overlay-date {
-  position: absolute;
-  color: #222;
-  font-family: "Yu Mincho", "MS PMincho", serif;
-  margin: 0;
-  width: 32%; /* テキストエリアの幅 */
-  text-align: center;
-}
-
-.overlay-price {
-  top: 46.5%;
-  left: 60%;
-  font-size: 4.5cqw;
-  font-weight: bold;
-}
-.overlay-score {
-  top: 71%;
-  left: 60%;
-  font-size: 4.5cqw;
-  font-weight: bold;
-}
-.unit {
-  font-size: 3.5cqw;
-  margin-left: 1.0cqw;
-}
-
-.overlay-date {
-  top: 88%;
-  left: 75.5%;
-  font-size: 2.6cqw;
-  font-weight: bold;
-  text-align: left;
-}
-
-.result-retry-btn-paper {
-  position: absolute;
-  bottom: 4%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #111111;
-  color: #ffffff;
-  border: 1px solid #999999; 
-  padding: 1.0cqw 3.5cqw;
-  border-radius: 0;
-  font-size: 1.8cqw;
-  font-family: "Yu Mincho", "MS PMincho", serif;
-  letter-spacing: 0.25em;
-  text-indent: 0.25em; 
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  pointer-events: auto;
-}
-.result-retry-btn-paper:hover {
-  background: #ffffff;
-  color: #111111;
-  border-color: #111111;
-  transform: translateX(-50%) scale(1.03);
-}
-
-.gem-name-luxury {
-  font-family: "Yu Mincho", "MS PMincho", serif;
-  font-size: 1.8rem;
-  color: #111111;
-  font-weight: bold;
-  letter-spacing: 0.1em;
-  margin-bottom: 15px;
-}
-
-/* 製造法（合成法）のテキスト */
-.gem-method-luxury {
-  font-family: sans-serif; /* ここだけゴシック体にして読みやすく現代風に */
-  font-size: 0.9rem;
-  color: #888888;
-  letter-spacing: 0.05em;
-  font-weight: bold;
-}
-</style>
