@@ -29,15 +29,11 @@ defineProps({
 
 <style scoped>
 .visual-area {
-  /* ▼ 修正：固定値 250px を削除し、App.vue側の指示（100%）にそのまま従うようにします */
   width: 100%;
   height: 100%;
-  
-  /* background: rgba(17, 34, 64, 0.5); */
   background: transparent;
-  /* border: 1px dashed #233554; */
   border: none;
-  border-radius: 12px;
+  /* border-radius: 12px; 角丸もネオン調の名残なので削除してシャープに */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -46,45 +42,43 @@ defineProps({
 }
 
 .step-image {
-  /* ▼ 修正：90%の制限を外し、枠いっぱいの100%まで拡大できるようにします */
   width: 100%;
   height: 100%;
-  
-  /* 関係のない元のスタイルはそのまま維持 */
   object-fit: contain;
-  filter: drop-shadow(0 0 15px rgba(100, 255, 218, 0.3));
+  /* ★犯人はここでした！青い光を削除し、上品で自然な影に変更しています */
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.1));
 }
 
-/* --- 以降、全く関係のない記述のため一切変更していません --- */
+/* --- 画像がない場合のプレースホルダーも高級感あるデザインに一新 --- */
 .no-image-placeholder {
   text-align: center;
-  color: #8892b0;
+  font-family: "Yu Mincho", "MS PMincho", serif; /* 明朝体に統一 */
 }
 
 .placeholder-icon {
   font-size: 3.5rem;
-  margin-bottom: 10px;
-  opacity: 0.4;
-  animation: pulse 2s infinite ease-in-out;
+  margin-bottom: 15px;
+  opacity: 0.5;
+  animation: pulse-luxury 3s infinite ease-in-out; /* ゆったりとした点滅に */
 }
 
 .placeholder-text {
-  font-size: 0.7rem;
-  letter-spacing: 3px;
-  color: #64ffda;
-  opacity: 0.6;
+  font-size: 0.9rem;
+  letter-spacing: 0.3em;
+  color: #999999; /* サイバーな青緑から、上品なグレーへ */
+  font-weight: bold;
 }
 
 .placeholder-step-name {
-  margin-top: 8px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #ccd6f6;
+  margin-top: 10px;
+  font-size: 1.5rem;
+  color: #111111; /* 薄い青から、シャープな黒へ */
+  letter-spacing: 0.1em;
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 0.4; }
-  50% { transform: scale(1.1); opacity: 0.6; }
-  100% { transform: scale(1); opacity: 0.4; }
+@keyframes pulse-luxury {
+  0% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.05); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 0.3; }
 }
 </style>
