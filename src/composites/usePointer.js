@@ -23,13 +23,13 @@ export function usePointer() {
   const gyroCursorSpeed = 0.6; 
 
   // 横位置計算
-  const FIXED_X_POSITION = computed(() => (window.innerWidth / 2) - 280);
+  const FIXED_X_POSITION = computed(() => (window.innerWidth / 2) - 220);
 
   // 縦位置計算
   const convertTempToYPosition = (temperature) => {
     const temp = Math.max(0, Math.min(2500, temperature));
     const centerY = window.innerHeight / 2;
-    return (centerY + 247) + ((centerY - 130) - (centerY + 247)) * (temp / 2000);
+    return (centerY + 247) + ((centerY - 80) - (centerY + 247)) * (temp / 2000);
   };
 
   const setupTemperatureTargets = (hitCount, ...temperatures) => {
