@@ -30,7 +30,12 @@
       </div>
 
       <div class="hud-center-view">
-        <VisualArea :step="currentStep" class="main-visual-large" />
+        <VisualArea 
+          :step="currentStep"
+          :accel="joyConAccel" 
+          :is-simulated="isSimulated"
+          class="main-visual-large"
+        />
         
         <div v-if="currentStep?.id.includes('pointer')" class="pointer-overlay-layer">
           <div 
@@ -68,7 +73,8 @@ const props = defineProps({
   isLockingOn: Boolean,
   pointerTarget: Object,
   gyroCursor: Object,
-  fixedX: Number
+  fixedX: Number,
+  joyConAccel: Object
 });
 
 const progressPercent = computed(() => {

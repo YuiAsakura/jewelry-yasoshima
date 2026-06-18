@@ -55,6 +55,7 @@ const startApp = async (simulate) => {
       :pointer-target="pointer.pointerTarget.value"
       :gyro-cursor="pointer.gyroCursor.value"
       :fixed-x="pointer.FIXED_X_POSITION.value"
+      :joy-con-accel="joyCon.lastAccel.value"
     />
 
     <ResultScreen 
