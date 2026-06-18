@@ -1,14 +1,24 @@
 <template>
   <div class="visual-area">
-    <!-- 画像パスがある場合のみ表示 -->
+    <ShakeVisual 
+      v-if="step.id.includes('shake')" 
+      :step="step" 
+      :accel="accel"
+      :is-simulated="isSimulated"
+    />
+
+    <MixVisual 
+      v-else-if="step.id.includes('centrifugal') || step.id.includes('rotate')" 
+      :step="step" :progress="progress" 
+    />
+
     <img 
-      v-if="step.image" 
+      v-else-if="step.image" 
       :src="step.image" 
       class="step-image" 
       alt="step-visual"
     />
     
-    <!-- 画像がない場合のプレースホルダー（ダミー表示） -->
     <div v-else class="no-image-placeholder">
       <div class="placeholder-icon">💎</div>
       <div class="placeholder-text">NO IMAGE</div>
@@ -18,24 +28,26 @@
 </template>
 
 <script setup>
+import ShakeVisual from './ShakeVisual.vue';
+import MixVisual from './MixVisual.vue';
+
 /**
  * 親(App.vue)から現在のステップデータを受け取ります
  */
 defineProps({
-  step: {
-    type: Object,
-    required: true
-  }
+  step: { type: Object, required: true },
+  accel: { type: Object, default: () => ({ x: 0, y: 0, z: 0 }) },
+  isSimulated: { type: Boolean, default: false },
+  progress: { type: Number, default: 0 }
 });
 </script>
 
 <style scoped>
 .visual-area {
   width: 100%;
-  height: 250px;
-  background: rgba(17, 34, 64, 0.5);
-  border: 1px dashed #233554;
-  border-radius: 12px;
+  height: 100%;
+  background: transparent;
+  border: none;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -44,41 +56,43 @@ defineProps({
 }
 
 .step-image {
-  max-height: 90%;
-  max-width: 90%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 0 15px rgba(100, 255, 218, 0.3));
+  /* ★犯人はここでした！青い光を削除し、上品で自然な影に変更しています */
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.1));
 }
 
+/* --- 画像がない場合のプレースホルダーも高級感あるデザインに一新 --- */
 .no-image-placeholder {
   text-align: center;
-  color: #8892b0;
+  font-family: "Yu Mincho", "MS PMincho", serif; /* 明朝体に統一 */
 }
 
 .placeholder-icon {
   font-size: 3.5rem;
-  margin-bottom: 10px;
-  opacity: 0.4;
-  animation: pulse 2s infinite ease-in-out;
+  margin-bottom: 15px;
+  opacity: 0.5;
+  animation: pulse-luxury 3s infinite ease-in-out; /* ゆったりとした点滅に */
 }
 
 .placeholder-text {
-  font-size: 0.7rem;
-  letter-spacing: 3px;
-  color: #64ffda;
-  opacity: 0.6;
+  font-size: 0.9rem;
+  letter-spacing: 0.3em;
+  color: #999999; /* サイバーな青緑から、上品なグレーへ */
+  font-weight: bold;
 }
 
 .placeholder-step-name {
-  margin-top: 8px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #ccd6f6;
+  margin-top: 10px;
+  font-size: 1.5rem;
+  color: #111111; /* 薄い青から、シャープな黒へ */
+  letter-spacing: 0.1em;
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 0.4; }
-  50% { transform: scale(1.1); opacity: 0.6; }
-  100% { transform: scale(1); opacity: 0.4; }
+@keyframes pulse-luxury {
+  0% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.05); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 0.3; }
 }
 </style>
