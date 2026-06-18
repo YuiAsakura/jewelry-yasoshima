@@ -19,7 +19,11 @@ const pointer = usePointer();
 const { handleInputReport } = useGameEngine(gameState, joyCon, pointer);
 
 // リザルト用の計算
-const finalPrice = computed(() => Math.floor((gameState.selectedGem.value?.maxPrice || 0) * gameState.averageProgressRate.value));
+const finalPrice = computed(() => {
+  const rawPrice = (gameState.selectedGem.value?.maxPrice || 0) * gameState.averageProgressRate.value;
+  return Math.round(rawPrice / 1000) * 1000;
+});
+
 const appraisalDate = computed(() => {
   const d = new Date();
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
