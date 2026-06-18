@@ -10,7 +10,7 @@ export const GEM_DATA = {
     maxPrice: 50000,
     steps: [
       { id: 'centrifugal', label: '酸化アルミニウム投入', timeLimit: 10, hint: '粉を混ぜよう！', image: "", bgImage: "/src/assets/images/bowl.png", toolImage: "/src/assets/images/spoon_tate.png" },
-      { id: 'pointer', label: '温度調整', timeLimit: 20, hint: '電気炉の温度を合わせて！', image: "/src/assets/images/group.png",  targets: [250, 500, 750, 1000, 1250, 1500, 1750, 2000]},
+      { id: 'pointer', label: '温度調整', timeLimit: 15, hint: '電気炉の温度を合わせて！', image: "/src/assets/images/group.png",  targets: [250, 500, 750, 1000, 1250, 1500, 1750, 2000]},
       { id: 'shake', label: '表面研磨', timeLimit: 10, hint: '振って削ろう!', image: "", bgImage: "/src/assets/images/ruby.png", toolImage: "/src/assets/images/file.png" }
     ]
   },

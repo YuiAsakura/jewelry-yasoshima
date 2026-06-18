@@ -21,7 +21,7 @@ const { handleInputReport } = useGameEngine(gameState, joyCon, pointer);
 // リザルト用の計算
 const finalPrice = computed(() => {
   const rawPrice = (gameState.selectedGem.value?.maxPrice || 0) * gameState.averageProgressRate.value;
-  return Math.round(rawPrice / 1000) * 1000;
+  return Math.round(rawPrice / 100) * 100;
 });
 
 const appraisalDate = computed(() => {

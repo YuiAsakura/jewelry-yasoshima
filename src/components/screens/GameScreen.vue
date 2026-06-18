@@ -168,7 +168,7 @@ const progressPercent = computed(() => {
 .pointer-cursor {
   position: fixed; width: 150px; height: 4px; background-color: #d4af37;
   border-radius: 2px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); transform: translate(-50%, -50%);
-  transition: top 0.1s linear; 
+  transition: top 0.05s linear; 
 }
 
 /* --- ステップ切り替え --- */

@@ -30,7 +30,7 @@ const toolStyle = computed(() => {
   const progressRate = props.progress / 2000;
 
   const totalSpins = 20; 
-  const rad = progressRate * totalSpins * 2 * Math.PI;
+  const rad = - (progressRate * totalSpins * 2 * Math.PI);
   const tiltAngle = Math.sin(rad) * 35;
   const depth = Math.cos(rad);
   const offsetY = depth * 15;
