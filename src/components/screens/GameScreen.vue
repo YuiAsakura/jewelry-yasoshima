@@ -34,6 +34,7 @@
           :step="currentStep"
           :accel="joyConAccel" 
           :is-simulated="isSimulated"
+          :progress="progress"
           class="main-visual-large"
         />
         

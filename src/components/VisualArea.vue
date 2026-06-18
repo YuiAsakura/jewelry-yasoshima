@@ -7,6 +7,11 @@
       :is-simulated="isSimulated"
     />
 
+    <MixVisual 
+      v-else-if="step.id.includes('centrifugal') || step.id.includes('rotate')" 
+      :step="step" :progress="progress" 
+    />
+
     <img 
       v-else-if="step.image" 
       :src="step.image" 
@@ -24,13 +29,16 @@
 
 <script setup>
 import ShakeVisual from './ShakeVisual.vue';
+import MixVisual from './MixVisual.vue';
+
 /**
  * 親(App.vue)から現在のステップデータを受け取ります
  */
 defineProps({
   step: { type: Object, required: true },
   accel: { type: Object, default: () => ({ x: 0, y: 0, z: 0 }) },
-  isSimulated: { type: Boolean, default: false }
+  isSimulated: { type: Boolean, default: false },
+  progress: { type: Number, default: 0 }
 });
 </script>
 
