@@ -20,9 +20,9 @@ export const GEM_DATA = {
     resultImage: "/src/assets/images/sapphire.png",
     maxPrice: 20000,
     steps: [
-      { id: 'long_press', label: '原料投入', timeLimit: 10, hint: 'Aボタン長押し!', image: "/src/assets/images/sapphire.png" },
-      { id: 'rotate', label: '結晶成長', timeLimit: 15, hint: 'スティックまたは本体を回せ！', image: "" },
-      { id: 'shake', label: '研磨', timeLimit: 10, hint: '力強く振れ！', image: "/src/assets/images/kezuru.png", bgImage: "/src/assets/images/sapphire.png", toolImage: "/src/assets/images/file.png" }
+      { id: 'mash', label: '原料投入', timeLimit: 10, hint: 'ボタン連打！', image: "/src/assets/images/sapphire.png" },
+      { id: 'pointer', label: '温度調整', timeLimit: 15, hint: '電気炉の温度を合わせて！', image: "/src/assets/images/group.png",  targets: [250, 500, 750, 1000, 1250, 1500, 1750, 2000] },
+      { id: 'shake', label: '表面研磨', timeLimit: 10, hint: '振って削ろう！', image: "", bgImage: "/src/assets/images/sapphire.png", toolImage: "/src/assets/images/file.png" }
     ]
   },
   /*

@@ -37,8 +37,14 @@ export function useGameEngine(gameState, joyCon, pointer) {
 
     // 連打
     const currentMashState = b2 | b4; 
-    if (stepId.includes('mash') && currentMashState !== 0x00 && currentMashState !== lastButtonState.value) {
-      performAction(6); triggerVibrate();
+    if (stepId.includes('mash') && currentMashState !== 0x00 && lastButtonState.value === 0x00) {
+      // 1秒間にn回のペース
+      const TARGET_PRESSES_PER_SEC = 5;
+      const totalRequiredPresses = gameState.currentStep.value.timeLimit * TARGET_PRESSES_PER_SEC;
+      const gain = PROGRESS_MAX / totalRequiredPresses;      
+
+      performAction(gain);
+      triggerVibrate();
     }
     lastButtonState.value = currentMashState;
 
@@ -91,7 +97,7 @@ export function useGameEngine(gameState, joyCon, pointer) {
     if (key === 'r' && stepId.includes('rotate')) performAction(5);
     if (key === 's' && stepId.includes('shake')) performAction(8);
     if (key === 'm' && stepId.includes('mash')) performAction(6);
-    if (key === 'p' && stepId.includes('press_all')) performAction(6);
+    if (key === 'p' && stepId.isncludes('press_all')) performAction(6);
     if (key === 'arrowup' && stepId.includes('pointer')) pointer.gyroCursor.value.y = Math.max(0, pointer.gyroCursor.value.y - 20);
     if (key === 'arrowdown' && stepId.includes('pointer')) pointer.gyroCursor.value.y = Math.min(window.innerHeight, pointer.gyroCursor.value.y + 20);
     if (key === 'c' && stepId.includes('pointer')) pointer.resetPointerJudgement();
