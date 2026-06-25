@@ -37,7 +37,28 @@
           :progress="progress"
           class="main-visual-large"
         />
-        
+
+        <div v-if="currentStep?.id === 'hpht'" class="hpht-container">
+          <div class="vertical-gauge">
+            <div class="gauge-label">高温 <span class="sub-label">(Joy-Conを振る)</span></div>
+            <div class="gauge-bg">
+              <div class="target-zone"></div>
+              <div class="gauge-fill temp-fill" :style="{ height: hphtTemp + '%' }"></div>
+            </div>
+          </div>
+          <div class="hpht-status">
+            <div class="status-icon" :class="{ 'is-ok': isHphtOk }">💎</div>
+            <div class="status-text" v-if="isHphtOk">PERFECT!</div>
+          </div>
+          <div class="vertical-gauge">
+            <div class="gauge-label">高圧 <span class="sub-label">(複数ボタン長押し)</span></div>
+            <div class="gauge-bg">
+              <div class="target-zone"></div>
+              <div class="gauge-fill press-fill" :style="{ height: hphtPressure + '%' }"></div>
+            </div>
+          </div>
+        </div>
+
         <div v-if="currentStep?.id.includes('pointer')" class="pointer-overlay-layer">
           <div 
             class="pointer-target" 
@@ -75,11 +96,18 @@ const props = defineProps({
   pointerTarget: Object,
   gyroCursor: Object,
   fixedX: Number,
-  joyConAccel: Object
+  joyConAccel: Object,
+  hphtTemp: Number,
+  hphtPressure: Number
 });
 
 const progressPercent = computed(() => {
   return Math.min((props.progress / PROGRESS_MAX) * 100, 100);
+});
+
+const isHphtOk = computed(() => {
+  return props.hphtTemp >= 50 && props.hphtTemp <= 80 && 
+         props.hphtPressure >= 50 && props.hphtPressure <= 80;
 });
 </script>
 
@@ -185,6 +213,22 @@ const progressPercent = computed(() => {
   position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
   font-size: 0.8rem; color: #999999; margin: 0;
 }
+
+/* --- HPHT 専用UIスタイル --- */
+.hpht-container { display: flex; align-items: center; justify-content: center; gap: 70px; width: 100%; height: 100%; }
+.vertical-gauge { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+.gauge-label { font-size: 1.5rem; font-family: "Yu Mincho", "MS PMincho", serif; font-weight: bold; color: #111; text-align: center; }
+.sub-label { font-size: 0.85rem; color: #666; display: block; margin-top: 5px; font-family: sans-serif; }
+.gauge-bg { position: relative; width: 80px; height: 380px; background: #e8e8e8; border: 3px solid #333; border-radius: 40px; overflow: hidden; box-shadow: inset 0 5px 15px rgba(0,0,0,0.2); }
+.target-zone { position: absolute; bottom: 50%; height: 30%; width: 100%; border-top: 4px solid #d4af37; border-bottom: 4px solid #d4af37; background: rgba(212, 175, 55, 0.2); z-index: 2; }
+.gauge-fill { position: absolute; bottom: 0; left: 0; width: 100%; transition: height 0.1s linear; z-index: 1; }
+.temp-fill { background: linear-gradient(0deg, #ff4e50, #f9d423); }
+.press-fill { background: linear-gradient(0deg, #02aab0, #00cdac); }
+.hpht-status { display: flex; flex-direction: column; align-items: center; width: 150px; }
+.status-icon { font-size: 5rem; opacity: 0.2; transition: all 0.3s ease; filter: grayscale(1); }
+.status-icon.is-ok { opacity: 1; filter: grayscale(0) drop-shadow(0 0 25px rgba(212,175,55,1)); transform: scale(1.15); }
+.status-text { font-family: sans-serif; font-weight: 900; color: #d4af37; letter-spacing: 0.1em; margin-top: 15px; font-size: 1.3rem; animation: pulse 1s infinite alternate; }
+@keyframes pulse { 0% { opacity: 0.6; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1.05); } }
 
 @keyframes pulse-timer {
   0% { opacity: 0.7; }

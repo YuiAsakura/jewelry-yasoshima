@@ -19,6 +19,9 @@ export function useGameState() {
   const isStepChanging = ref(false);
   const stepChangeText = ref('');
 
+  const hphtTemp = ref(0);
+  const hphtPressure = ref(0);  
+
   const selectedGem = computed(() => GEM_DATA[selectedGemKey.value]);
   const currentStep = computed(() => selectedGem.value?.steps[currentStepIndex.value]);
   
@@ -39,6 +42,8 @@ export function useGameState() {
     progress.value = 0;
     timeLeft.value = GEM_DATA[key].steps[0].timeLimit;
     stepProgressRates.value = [];
+    hphtTemp.value = 0;
+    hphtPressure.value = 0;
     isCountingDown.value = true;
     countdown.value = 3;
     lastAngle.value = null;
@@ -49,6 +54,8 @@ export function useGameState() {
     stepProgressRates.value.push(Math.min(progress.value / PROGRESS_MAX, 1));
     progress.value = 0;
     lastAngle.value = null;
+    hphtTemp.value = 0;
+    hphtPressure.value = 0;
     if (currentStepIndex.value < selectedGem.value.steps.length - 1) {
       currentStepIndex.value++;
       timeLeft.value = currentStep.value.timeLimit;
@@ -61,6 +68,7 @@ export function useGameState() {
     currentScreen, selectedGemKey, selectedGem, currentStep, currentStepIndex, 
     progress, timeLeft, lastAngle, resetGame, nextStep,
     isCountingDown, countdown, averageProgressRate,
-    isStepChanging, stepChangeText, triggerNeonTransition
+    isStepChanging, stepChangeText, triggerNeonTransition,
+    hphtTemp, hphtPressure
   };
 }
