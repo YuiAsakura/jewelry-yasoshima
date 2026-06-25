@@ -9,9 +9,9 @@ export const GEM_DATA = {
     resultImage: "/src/assets/images/ruby.png",
     maxPrice: 50000,
     steps: [
-      { id: 'centrifugal', label: '酸化アルミニウム投入', timeLimit: 10, hint: '粉を混ぜよう！', image: "/src/assets/images/mix.png" },
-      { id: 'pointer', label: '温度調整', timeLimit: 20, hint: '電気炉の温度を合わせて！', image: "/src/assets/images/group.png",  targets: [250, 500, 750, 1000, 1250, 1500, 1750, 2000]},
-      { id: 'shake', label: '表面研磨', timeLimit: 10, hint: '振って削ろう!', image: "/src/assets/images/kezuru.png" }
+      { id: 'centrifugal', label: '酸化アルミニウム投入', timeLimit: 10, hint: '粉を混ぜよう！', image: "", bgImage: "/src/assets/images/bowl.png", toolImage: "/src/assets/images/spoon_tate.png" },
+      { id: 'pointer', label: '温度調整', timeLimit: 15, hint: '電気炉の温度を合わせて！', image: "/src/assets/images/group.png",  targets: [250, 500, 750, 1000, 1250, 1500, 1750, 2000]},
+      { id: 'shake', label: '表面研磨', timeLimit: 10, hint: '振って削ろう!', image: "", bgImage: "/src/assets/images/ruby.png", toolImage: "/src/assets/images/file.png" }
     ]
   },
   sapphire: {
@@ -20,9 +20,9 @@ export const GEM_DATA = {
     resultImage: "/src/assets/images/sapphire.png",
     maxPrice: 20000,
     steps: [
-      { id: 'long_press', label: '原料投入', timeLimit: 10, hint: 'Aボタン長押し!', image: "" },
-      { id: 'rotate', label: '結晶成長', timeLimit: 15, hint: 'スティックまたは本体を回せ！', image: "" },
-      { id: 'shake', label: '研磨', timeLimit: 10, hint: '力強く振れ！', image: "" }
+      { id: 'mash', label: '原料投入', timeLimit: 10, hint: 'ボタン連打！', image: "/src/assets/images/sapphire.png" },
+      { id: 'pointer', label: '温度調整', timeLimit: 15, hint: '電気炉の温度を合わせて！', image: "/src/assets/images/group.png",  targets: [250, 500, 750, 1000, 1250, 1500, 1750, 2000] },
+      { id: 'shake', label: '表面研磨', timeLimit: 10, hint: '振って削ろう！', image: "", bgImage: "/src/assets/images/sapphire.png", toolImage: "/src/assets/images/file.png" }
     ]
   },
   /*
@@ -62,7 +62,7 @@ export const GEM_DATA = {
     resultImage: "/src/assets/images/diamond.png",
     maxPrice: 2000000,
     steps: [
-      { id: 'press_all', label: '超高圧印加', timeLimit: 20, hint: 'スティック回転！', image: "/src/assets/images/diamond.png" },
+      { id: 'press_all', label: '超高圧印加', timeLimit: 20, hint: 'スティック回転！', image: "/src/assets/images/press_machine.png" },
       { id: 'press_shake', label: '超高温加熱', timeLimit: 15, hint: 'Aを押しながら振れ!', image: "/src/assets/images/diamond.png" }
     ]
   }

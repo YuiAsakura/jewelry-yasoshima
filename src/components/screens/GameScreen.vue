@@ -30,7 +30,13 @@
       </div>
 
       <div class="hud-center-view">
-        <VisualArea :step="currentStep" class="main-visual-large" />
+        <VisualArea 
+          :step="currentStep"
+          :accel="joyConAccel" 
+          :is-simulated="isSimulated"
+          :progress="progress"
+          class="main-visual-large"
+        />
         
         <div v-if="currentStep?.id.includes('pointer')" class="pointer-overlay-layer">
           <div 
@@ -68,7 +74,8 @@ const props = defineProps({
   isLockingOn: Boolean,
   pointerTarget: Object,
   gyroCursor: Object,
-  fixedX: Number
+  fixedX: Number,
+  joyConAccel: Object
 });
 
 const progressPercent = computed(() => {
@@ -144,22 +151,24 @@ const progressPercent = computed(() => {
   object-fit: contain; z-index: 5;
 }
 
-/* --- ポインター（温度計） --- */
 .pointer-overlay-layer {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   z-index: 10; pointer-events: none;
 }
 .pointer-target {
-  position: fixed; width: 150px; height: 4px; background-color: #cccccc;
-  border-radius: 0; box-shadow: none; transform: translate(-50%, -50%);
-  transition: background-color 0.2s, box-shadow 0.2s;
+  position: fixed; width: 150px; height: 8px; background-color: rgba(212, 175, 55, 0); 
+  border: 2px solid #aaaaaa; border-radius: 2px; box-shadow: none; 
+  transform: translate(-50%, -50%); transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 .pointer-target.target-locking {
-  background-color: #d4af37 !important; box-shadow: 0 0 15px rgba(212, 175, 55, 0.4) !important; 
+  background-color: #d4af37 !important; border-color: #d4af37 !important;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.6) !important; 
+  transition: background-color 1s linear, border-color 1s linear, box-shadow 1s linear;
 }
 .pointer-cursor {
-  position: fixed; width: 130px; height: 2px; background-color: #111111;
-  border-radius: 0; box-shadow: none; transform: translate(-50%, -50%);
+  position: fixed; width: 150px; height: 4px; background-color: #d4af37;
+  border-radius: 2px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); transform: translate(-50%, -50%);
+  transition: top 0.05s linear; 
 }
 
 /* --- ステップ切り替え --- */

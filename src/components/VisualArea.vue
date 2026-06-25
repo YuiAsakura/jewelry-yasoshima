@@ -1,7 +1,19 @@
 <template>
   <div class="visual-area">
+    <ShakeVisual 
+      v-if="step.id.includes('shake')" 
+      :step="step" 
+      :accel="accel"
+      :is-simulated="isSimulated"
+    />
+
+    <MixVisual 
+      v-else-if="step.id.includes('centrifugal') || step.id.includes('rotate')" 
+      :step="step" :progress="progress" 
+    />
+
     <img 
-      v-if="step.image" 
+      v-else-if="step.image" 
       :src="step.image" 
       class="step-image" 
       alt="step-visual"
@@ -16,14 +28,17 @@
 </template>
 
 <script setup>
+import ShakeVisual from './ShakeVisual.vue';
+import MixVisual from './MixVisual.vue';
+
 /**
  * 親(App.vue)から現在のステップデータを受け取ります
  */
 defineProps({
-  step: {
-    type: Object,
-    required: true
-  }
+  step: { type: Object, required: true },
+  accel: { type: Object, default: () => ({ x: 0, y: 0, z: 0 }) },
+  isSimulated: { type: Boolean, default: false },
+  progress: { type: Number, default: 0 }
 });
 </script>
 
@@ -33,7 +48,6 @@ defineProps({
   height: 100%;
   background: transparent;
   border: none;
-  /* border-radius: 12px; 角丸もネオン調の名残なので削除してシャープに */
   display: flex;
   justify-content: center;
   align-items: center;

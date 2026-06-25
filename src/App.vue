@@ -19,7 +19,11 @@ const pointer = usePointer();
 const { handleInputReport } = useGameEngine(gameState, joyCon, pointer);
 
 // リザルト用の計算
-const finalPrice = computed(() => Math.floor((gameState.selectedGem.value?.maxPrice || 0) * gameState.averageProgressRate.value));
+const finalPrice = computed(() => {
+  const rawPrice = (gameState.selectedGem.value?.maxPrice || 0) * gameState.averageProgressRate.value;
+  return Math.round(rawPrice / 100) * 100;
+});
+
 const appraisalDate = computed(() => {
   const d = new Date();
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
@@ -55,6 +59,7 @@ const startApp = async (simulate) => {
       :pointer-target="pointer.pointerTarget.value"
       :gyro-cursor="pointer.gyroCursor.value"
       :fixed-x="pointer.FIXED_X_POSITION.value"
+      :joy-con-accel="joyCon.lastAccel.value"
     />
 
     <ResultScreen 
