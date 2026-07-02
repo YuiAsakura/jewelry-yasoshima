@@ -60,6 +60,8 @@ const startApp = async (simulate) => {
       :gyro-cursor="pointer.gyroCursor.value"
       :fixed-x="pointer.FIXED_X_POSITION.value"
       :joy-con-accel="joyCon.lastAccel.value"
+      :hpht-temp="gameState.hphtTemp.value"
+      :hpht-pressure="gameState.hphtPressure.value"
     />
 
     <ResultScreen 

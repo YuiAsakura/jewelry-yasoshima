@@ -70,6 +70,12 @@ export function useGameEngine(gameState, joyCon, pointer) {
         performAction(30); triggerVibrate(); throttle(120);
       }
     }
+    if (stepId === 'hpht') {
+      if (getShakeDelta(currentAccel, joyCon.lastAccel.value) > config.shakeThreshold && joyCon.canAddProgress.value) {
+        gameState.hphtTemp.value = Math.min(100, gameState.hphtTemp.value + 5);
+        triggerVibrate(); throttle(100);
+      }
+    }
     if (stepId.includes('centrifugal')) {
       const centrifugal = getCentrifugal(currentAccel, joyCon.lastAccel.value);
       if (centrifugal > config.rotationThreshold) {
@@ -80,7 +86,7 @@ export function useGameEngine(gameState, joyCon, pointer) {
     joyCon.lastAccel.value = currentAccel;
 
     // 全押し (press_all)
-    if (stepId.includes('press_all')) {
+    if (stepId.includes('press_all') || stepId === 'hpht') {
       let aB2 = b2 & 0xFF, aB3 = b3 & 0x3F, aB4 = b4 & 0xFF;
       let count = 0;
       while(aB2 > 0) { count += aB2 & 1; aB2 >>= 1; }
@@ -97,10 +103,12 @@ export function useGameEngine(gameState, joyCon, pointer) {
     if (key === 'r' && stepId.includes('rotate')) performAction(5);
     if (key === 's' && stepId.includes('shake')) performAction(8);
     if (key === 'm' && stepId.includes('mash')) performAction(6);
-    if (key === 'p' && stepId.isncludes('press_all')) performAction(6);
+    //if (key === 'p' && stepId.isncludes('press_all')) performAction(6);
     if (key === 'arrowup' && stepId.includes('pointer')) pointer.gyroCursor.value.y = Math.max(0, pointer.gyroCursor.value.y - 20);
     if (key === 'arrowdown' && stepId.includes('pointer')) pointer.gyroCursor.value.y = Math.min(window.innerHeight, pointer.gyroCursor.value.y + 20);
     if (key === 'c' && stepId.includes('pointer')) pointer.resetPointerJudgement();
+    if (key === 's' && stepId === 'hpht') gameState.hphtTemp.value = Math.min(100, gameState.hphtTemp.value + 12);
+    if (key === 'p' && stepId === 'hpht') gameState.hphtPressure.value = Math.min(100, gameState.hphtPressure.value + 15);
   };
 
   // 画面遷移時の演出と設定
@@ -151,6 +159,18 @@ export function useGameEngine(gameState, joyCon, pointer) {
       if (stepId.includes('press_all') && pressedButtonCount.value > 0) {
         const gain = (PROGRESS_MAX / (gameState.currentStep.value.timeLimit * 10)) * (Math.min(pressedButtonCount.value, 10) / 10);
         performAction(gain); triggerVibrate();
+      }
+
+      if (stepId === 'hpht') {
+        gameState.hphtTemp.value = Math.max(0, gameState.hphtTemp.value - 1.5);
+        gameState.hphtPressure.value = Math.max(0, gameState.hphtPressure.value - 1.5);
+        if (pressedButtonCount.value > 0) {
+          gameState.hphtPressure.value = Math.min(100, gameState.hphtPressure.value + (pressedButtonCount.value * 1.2));
+        }
+        if (gameState.hphtTemp.value >= 50 && gameState.hphtTemp.value <= 80 && gameState.hphtPressure.value >= 50 && gameState.hphtPressure.value <= 80) {
+          performAction(PROGRESS_MAX / (gameState.currentStep.value.timeLimit * 10));
+          if (Math.random() < 0.2) triggerVibrate();
+        }
       }
 
       // ポインターの当たり判定

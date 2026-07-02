@@ -9,7 +9,7 @@ export const GEM_DATA = {
     resultImage: "/src/assets/images/ruby.png",
     maxPrice: 50000,
     steps: [
-      { id: 'centrifugal', label: '酸化アルミニウム投入', timeLimit: 10, hint: '粉を混ぜよう！', image: "", bgImage: "/src/assets/images/bowl.png", toolImage: "/src/assets/images/spoon_tate.png" },
+      { id: 'centrifugal', label: '酸化アルミニウム投入', timeLimit: 10, hint: '粉を混ぜよう！', image: "", bgImage: "/src/assets/images/mix-bowl.png", toolImage: "/src/assets/images/spoon_tate.png", fgImage: "/src/assets/images/mix-bowl-top.png"},
       { id: 'pointer', label: '温度調整', timeLimit: 15, hint: '電気炉の温度を合わせて！', image: "/src/assets/images/group.png",  targets: [250, 500, 750, 1000, 1250, 1500, 1750, 2000]},
       { id: 'shake', label: '表面研磨', timeLimit: 10, hint: '振って削ろう!', image: "", bgImage: "/src/assets/images/ruby.png", toolImage: "/src/assets/images/file.png" }
     ]
@@ -62,8 +62,7 @@ export const GEM_DATA = {
     resultImage: "/src/assets/images/diamond.png",
     maxPrice: 2000000,
     steps: [
-      { id: 'press_all', label: '超高圧印加', timeLimit: 20, hint: 'スティック回転！', image: "/src/assets/images/press_machine.png" },
-      { id: 'press_shake', label: '超高温加熱', timeLimit: 15, hint: 'Aを押しながら振れ!', image: "/src/assets/images/diamond.png" }
+      { id: 'hpht', label: '高温高圧処理', timeLimit: 20, hint: 'ゲージに合わせよう！', image: "/src/assets/images/press_machine.png" }
     ]
   }
 };

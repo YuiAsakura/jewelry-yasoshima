@@ -3,8 +3,8 @@
     <img 
       v-if="step.bgImage" 
       :src="step.bgImage" 
-      class="bowl-image" 
-      alt="bowl" 
+      class="bowl-image bg-bowl" 
+      alt="bowl-bg" 
     />
 
     <img 
@@ -13,6 +13,13 @@
       class="stir-tool-image" 
       :style="toolStyle"
       alt="stir-tool" 
+    />
+
+    <img 
+      v-if="step.fgImage" 
+      :src="step.fgImage" 
+      class="bowl-image fg-bowl" 
+      alt="bowl-fg" 
     />
   </div>
 </template>
@@ -25,7 +32,6 @@ const props = defineProps({
   progress: { type: Number, default: 0 }
 });
 
-// 変更前（toolStyleの部分すべて）をこれに置き換えます
 const toolStyle = computed(() => {
   const progressRate = props.progress / 2000;
 
@@ -54,11 +60,19 @@ const toolStyle = computed(() => {
 }
 
 .bowl-image {
-  max-width: 100%;
-  max-height: 100%;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.15));
+}
+
+.bg-bowl {
   z-index: 1;
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.15));
+}
+
+.fg-bowl {
+  z-index: 3;
 }
 
 .stir-tool-image {

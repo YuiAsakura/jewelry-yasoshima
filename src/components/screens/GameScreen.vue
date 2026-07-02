@@ -36,8 +36,27 @@
           :is-simulated="isSimulated"
           :progress="progress"
           class="main-visual-large"
+          :class="{ 'is-ok-glow': currentStep?.id === 'hpht' && isHphtOk }"
         />
-        
+
+        <div v-if="currentStep?.id === 'hpht'" class="hpht-gauges-overlay">
+          <div class="vertical-gauge">
+            <div class="gauge-label">高温 <span class="sub-label">(Joy-Conを振る)</span></div>
+            <div class="gauge-bg">
+              <div class="target-zone"></div>
+              <div class="gauge-fill temp-fill" :style="{ height: hphtTemp + '%' }"></div>
+            </div>
+          </div>
+
+          <div class="vertical-gauge">
+            <div class="gauge-label">高圧 <span class="sub-label">(複数ボタン長押し)</span></div>
+            <div class="gauge-bg">
+              <div class="target-zone"></div>
+              <div class="gauge-fill press-fill" :style="{ height: hphtPressure + '%' }"></div>
+            </div>
+          </div>
+        </div>
+
         <div v-if="currentStep?.id.includes('pointer')" class="pointer-overlay-layer">
           <div 
             class="pointer-target" 
@@ -75,11 +94,18 @@ const props = defineProps({
   pointerTarget: Object,
   gyroCursor: Object,
   fixedX: Number,
-  joyConAccel: Object
+  joyConAccel: Object,
+  hphtTemp: Number,
+  hphtPressure: Number
 });
 
 const progressPercent = computed(() => {
   return Math.min((props.progress / PROGRESS_MAX) * 100, 100);
+});
+
+const isHphtOk = computed(() => {
+  return props.hphtTemp >= 50 && props.hphtTemp <= 80 && 
+         props.hphtPressure >= 50 && props.hphtPressure <= 80;
 });
 </script>
 
@@ -189,5 +215,36 @@ const progressPercent = computed(() => {
 @keyframes pulse-timer {
   0% { opacity: 0.7; }
   100% { opacity: 1; }
+}
+
+.hpht-gauges-overlay { 
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+  display: flex; justify-content: space-between; align-items: center; 
+  padding: 0 15%;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 10; 
+}
+.vertical-gauge { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.gauge-label { font-size: 1.4rem; font-family: "Yu Mincho", "MS PMincho", serif; font-weight: bold; color: #111; text-align: center; text-shadow: 0 0 5px rgba(255,255,255,0.9); }
+.sub-label { font-size: 0.85rem; color: #666; display: block; margin-top: 5px; font-family: sans-serif; }
+
+.gauge-bg { 
+  position: relative; 
+  width: 75px;
+  height: 55vh;
+  max-height: 480px;
+  background: #e8e8e8; border: 3px solid #333; border-radius: 40px; 
+  overflow: hidden; box-shadow: inset 0 5px 15px rgba(0,0,0,0.2); 
+}
+.target-zone { position: absolute; bottom: 50%; height: 30%; width: 100%; border-top: 4px solid #d4af37; border-bottom: 4px solid #d4af37; background: rgba(212, 175, 55, 0.2); z-index: 2; }
+.gauge-fill { position: absolute; bottom: 0; left: 0; width: 100%; transition: height 0.1s linear; z-index: 1; }
+.temp-fill { background: linear-gradient(0deg, #ff4e50, #f9d423); }
+.press-fill { background: linear-gradient(0deg, #02aab0, #00cdac); }
+
+.main-visual-large { transition: all 0.2s ease-out; }
+.main-visual-large.is-ok-glow {
+  filter: drop-shadow(0 0 45px rgba(212, 175, 55, 1)) brightness(1.15);
+  transform: scale(1.03);
 }
 </style>
