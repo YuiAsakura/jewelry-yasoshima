@@ -44,9 +44,7 @@ export function useGameState() {
   });
 
   const triggerNeonTransition = () => {
-    stepChangeText.value = currentStep.value?.hint || '';
-    isStepChanging.value = true;
-    setTimeout(() => { isStepChanging.value = false; }, 1250); 
+    isStepChanging.value = false;
   };
   
   const resetGame = (key) => {

@@ -59,12 +59,6 @@
       <div class="countdown-label" v-if="Math.ceil(countdown) > 0">READY</div>
     </div>
 
-    <Transition name="neon-fade">
-      <div v-if="isStepChanging" class="step-transition-overlay">
-        <div class="neon-instruction-text">{{ stepChangeText }}</div>
-      </div>
-    </Transition>
-
     <div class="game-hud-container">
       <div class="hud-right-top">
         <div class="timer-title">TIME</div>
