@@ -19,6 +19,19 @@ export function useGameState() {
   const isStepChanging = ref(false);
   const stepChangeText = ref('');
 
+  // ★変更：イントロの段階管理（1: 科学知識, 2: 操作方法, 0: カウントダウンへ）
+  const introPhase = ref(0);
+
+  const advanceIntro = () => {
+    if (introPhase.value === 1) {
+      introPhase.value = 2;
+    } else if (introPhase.value === 2) {
+      introPhase.value = 0;
+      isCountingDown.value = true;
+      countdown.value = 3;
+    }
+  };
+
   const hphtTemp = ref(0);
   const hphtPressure = ref(0);  
 
@@ -31,9 +44,7 @@ export function useGameState() {
   });
 
   const triggerNeonTransition = () => {
-    stepChangeText.value = currentStep.value?.hint || '';
-    isStepChanging.value = true;
-    setTimeout(() => { isStepChanging.value = false; }, 1250); 
+    isStepChanging.value = false;
   };
   
   const resetGame = (key) => {
@@ -44,7 +55,8 @@ export function useGameState() {
     stepProgressRates.value = [];
     hphtTemp.value = 0;
     hphtPressure.value = 0;
-    isCountingDown.value = true;
+    introPhase.value = 1;
+    isCountingDown.value = false;
     countdown.value = 3;
     lastAngle.value = null;
     currentScreen.value = 'game';
@@ -59,6 +71,8 @@ export function useGameState() {
     if (currentStepIndex.value < selectedGem.value.steps.length - 1) {
       currentStepIndex.value++;
       timeLeft.value = currentStep.value.timeLimit;
+      introPhase.value = 1;
+      isCountingDown.value = false;
     } else {
       currentScreen.value = 'result';
     }
@@ -69,6 +83,7 @@ export function useGameState() {
     progress, timeLeft, lastAngle, resetGame, nextStep,
     isCountingDown, countdown, averageProgressRate,
     isStepChanging, stepChangeText, triggerNeonTransition,
-    hphtTemp, hphtPressure
+    hphtTemp, hphtPressure,
+    introPhase, advanceIntro
   };
 }

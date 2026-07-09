@@ -28,11 +28,24 @@ export function useGameEngine(gameState, joyCon, pointer) {
 
   // Joy-Conの入力解析
   const handleInputReport = (event) => {
-    if (event.reportId !== 0x30 || gameState.currentScreen.value !== 'game' || gameState.isCountingDown.value || gameState.isStepChanging.value) return;
+    if (event.reportId !== 0x30 || gameState.currentScreen.value !== 'game') return;
     
     const { data } = event;
-    const config = GEM_CONFIG[gameState.selectedGemKey.value] || GEM_CONFIG.RUBY;
     const b2 = data.getUint8(2), b3 = data.getUint8(3), b4 = data.getUint8(4);
+
+    if (gameState.introPhase.value > 0) {
+      const anyButtonPressed = (b2 | b3 | b4) !== 0x00;
+      if (anyButtonPressed && lastButtonState.value === 0x00) {
+        gameState.advanceIntro();
+        sendVibration(joyCon.hidDevice.value, packetCounter++, [0x48, 0x01]);
+      }
+      lastButtonState.value = (b2 | b4);
+      return;
+    }
+
+    if (gameState.isCountingDown.value || gameState.isStepChanging.value) return;
+
+    const config = GEM_CONFIG[gameState.selectedGemKey.value] || GEM_CONFIG.RUBY;
     const stepId = gameState.currentStep.value?.id || '';
 
     // 連打
@@ -98,7 +111,15 @@ export function useGameEngine(gameState, joyCon, pointer) {
 
   // キーボードデバッグ
   const handleKeyDown = (e) => {
-    if (gameState.currentScreen.value !== 'game' || gameState.isCountingDown.value || gameState.isStepChanging.value || !joyCon.isSimulated.value) return;
+    if (gameState.currentScreen.value !== 'game') return;
+
+    if (gameState.introPhase.value > 0) {
+      gameState.advanceIntro();
+      return;
+    }
+
+    if (gameState.isCountingDown.value || gameState.isStepChanging.value || !joyCon.isSimulated.value) return;
+
     const key = e.key.toLowerCase(), stepId = gameState.currentStep.value?.id || '';
     if (key === 'r' && stepId.includes('rotate')) performAction(5);
     if (key === 's' && stepId.includes('shake')) performAction(8);
@@ -129,6 +150,9 @@ export function useGameEngine(gameState, joyCon, pointer) {
     window.addEventListener('keydown', handleKeyDown);
     intervalId = setInterval(() => {
       if (gameState.currentScreen.value !== 'game') return;
+
+      // イントロ表示中はタイマーを一時停止
+      if (gameState.introPhase.value > 0) return;
 
       if (gameState.isCountingDown.value) {
         if (gameState.countdown.value > -0.8) gameState.countdown.value = parseFloat((gameState.countdown.value - 0.1).toFixed(1));
