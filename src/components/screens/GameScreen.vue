@@ -12,6 +12,7 @@
           </div>
           
           <h1 class="intro-step-title">{{ currentStep.label }}</h1>
+          
           <div class="intro-divider"></div>
           
           <div v-if="introPhase === 1" class="intro-content-page1">
@@ -312,8 +313,15 @@ const isHphtOk = computed(() => {
 }
 
 .step-intro-card {
-  width: 85%; max-width: 850px; background: #faf9f6;
-  border: 3px solid #111111; border-radius: 20px; padding: 35px 50px;
+  width: 88vw; max-width: 980px; 
+  background: #faf9f6;
+  height: 80vh; 
+  min-height: 520px;
+  max-height: 780px;
+  
+  overflow: hidden; 
+  border: 3px solid #111111; border-radius: 20px; 
+  padding: 25px 40px; 
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 4px #d4af37;
   display: flex; flex-direction: column; align-items: center; text-align: center;
   animation: intro-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -321,7 +329,7 @@ const isHphtOk = computed(() => {
 }
 
 .intro-header {
-  display: flex; align-items: center; gap: 15px; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 15px; margin-bottom: 5px;
 }
 .intro-step-num {
   font-family: "Yu Mincho", "MS PMincho", serif; font-size: 1.3rem; font-weight: bold;
@@ -329,56 +337,65 @@ const isHphtOk = computed(() => {
 }
 .intro-action-badge {
   background: #111111; color: #faf9f6; font-size: 1rem; font-weight: bold;
-  padding: 5px 20px; border-radius: 30px; letter-spacing: 0.15em;
+  padding: 4px 18px; border-radius: 30px; letter-spacing: 0.15em;
   font-family: "Yu Mincho", "MS PMincho", serif;
 }
 .intro-page-indicator {
   font-size: 0.95rem; font-weight: bold; color: #666; background: #e8e8e8;
-  padding: 4px 12px; border-radius: 12px;
+  padding: 3px 12px; border-radius: 12px;
 }
 
 .intro-step-title {
-  font-family: "Yu Mincho", "MS PMincho", serif; font-size: 2.6rem; font-weight: normal;
+  font-family: "Yu Mincho", "MS PMincho", serif; font-size: 2.0rem; font-weight: bold;
   color: #111111; letter-spacing: 0.05em; margin: 5px 0; text-shadow: none;
 }
 
 .intro-divider {
-  width: 150px; height: 3px; background: linear-gradient(90deg, transparent, #d4af37, transparent);
-  margin: 15px 0 25px 0;
+  width: 250px; height: 3px; background: linear-gradient(90deg, transparent, #d4af37, transparent);
+  margin: 10px 0 15px 0;
+  flex-shrink: 0;
 }
 
 .intro-subtitle {
   font-family: "Yu Mincho", "MS PMincho", serif; font-size: 1.3rem; font-weight: bold;
-  color: #886611; margin-bottom: 15px; letter-spacing: 0.1em;
+  color: #886611; margin-bottom: 10px; letter-spacing: 0.1em;
 }
 
 /* --- 1ページ目：科学知識 --- */
-.intro-content-page1 { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
+.intro-content-page1 { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
 .intro-description {
-  font-family: "Yu Mincho", "MS PMincho", serif; font-size: 1.35rem; line-height: 1.8;
-  color: #333333; text-align: left; width: 100%; max-width: 680px;
-  background: #f0ede6; padding: 25px 35px; border-radius: 12px; border-left: 5px solid #d4af37; margin: 0;
+  font-family: "Yu Mincho", "MS PMincho", serif; font-size: 1.3rem; line-height: 1.7;
+  color: #333333; text-align: left; width: 100%; max-width: 750px;
+  background: #f0ede6; padding: 20px 30px; border-radius: 12px; border-left: 5px solid #d4af37; margin: 0;
   box-sizing: border-box;
 }
 
 /* --- 2ページ目：操作方法 --- */
-.intro-content-page2 { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; }
+.intro-content-page2 { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
+
 .intro-hint-box-top {
-  background: #222222; color: #d4af37; padding: 15px 45px; border-radius: 50px;
-  font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); margin-bottom: 25px;
+  background: transparent; color: #111111; padding: 0; border-radius: 0;
+  font-size: 1.4rem; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px;
+  box-shadow: none; margin-bottom: 15px; font-family: "Yu Mincho", "MS PMincho", serif;
 }
-.intro-action-image-wrapper { width: 100%; max-width: 500px; height: 220px; display: flex; justify-content: center; align-items: center; }
+
+.intro-action-image-wrapper { 
+  width: 100%; max-width: 550px; height: 220px; max-height: 28vh; 
+  display: flex; justify-content: center; align-items: center; 
+}
 .intro-action-image { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.15)); }
 .intro-image-placeholder {
   width: 100%; height: 100%; border: 2px dashed #bbbbbb; border-radius: 15px;
   background: rgba(255, 255, 255, 0.5); display: flex; flex-direction: column;
-  justify-content: center; align-items: center; color: #777777; font-weight: bold; gap: 10px;
+  justify-content: center; align-items: center; color: #777777; font-weight: bold; gap: 8px;
 }
-.placeholder-icon-small { font-size: 2.5rem; opacity: 0.6; }
+.placeholder-icon-small { font-size: 2.2rem; opacity: 0.6; }
 
-/* フッター・アニメーション */
-.intro-start-prompt { font-size: 1rem; color: #555555; font-weight: bold; letter-spacing: 0.15em; }
+.intro-start-prompt { 
+  font-size: 1rem; color: #555555; font-weight: bold; letter-spacing: 0.15em; 
+  margin-top: auto; padding-top: 10px; 
+  flex-shrink: 0;
+}
 .prompt-blink { animation: pulse-timer 1.5s infinite ease-in-out; }
 
 @keyframes intro-pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
