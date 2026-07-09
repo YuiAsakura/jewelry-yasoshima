@@ -62,6 +62,8 @@ const startApp = async (simulate) => {
       :joy-con-accel="joyCon.lastAccel.value"
       :hpht-temp="gameState.hphtTemp.value"
       :hpht-pressure="gameState.hphtPressure.value"
+      :intro-phase="gameState.introPhase.value"
+      @advance-intro="gameState.advanceIntro"
     />
 
     <ResultScreen 
