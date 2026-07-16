@@ -297,8 +297,8 @@ onBeforeUnmount(() => {
 }
 
 .gem-card-image {
-  max-width: 100px;
-  max-height: 100px;
+  max-width: 220px;
+  max-height: 220px;
   object-fit: contain;
   filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
   transition: transform 0.3s ease;

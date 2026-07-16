@@ -57,7 +57,7 @@ const emitRetry = () => {
 /* --- 左側：宝石エリア --- */
 .result-gem-image-paper {
   position: absolute; top: 60%; left: 25%; transform: translate(-50%, -50%);
-  width: 36cqw; max-height: 60cqh; object-fit: contain;
+  width: 50cqw; max-height: 80cqh; object-fit: contain;
   filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.15));
 }
 
