@@ -30,10 +30,11 @@
 
             <div class="intro-action-image-wrapper">
               <img 
-                v-if="currentStep.introImage" 
+                v-if="currentStep.introImage && !introImageFailed" 
                 :src="currentStep.introImage" 
                 class="intro-action-image" 
                 alt="操作の図" 
+                @error="introImageFailed = true"
               />
               <div v-else class="intro-image-placeholder">
                 <span class="placeholder-icon-small">🖼️</span>
@@ -113,15 +114,12 @@
         </div>
       </div>
 
-      <p v-if="isSimulated" class="debug-hint-game">
-        [R]回転 [S]振る [M]連打 [矢印キー]ポインター移動 [C]リセット
-      </p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import VisualArea from '../VisualArea.vue';
 import { PROGRESS_MAX } from '../../composites/useGameState';
 
@@ -147,6 +145,12 @@ const props = defineProps({
 });
 
 defineEmits(['advance-intro']);
+
+const introImageFailed = ref(false);
+
+watch(() => props.currentStep?.id, () => {
+  introImageFailed.value = false;
+});
 
 const progressPercent = computed(() => {
   return Math.min((props.progress / PROGRESS_MAX) * 100, 100);
