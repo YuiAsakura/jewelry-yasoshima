@@ -23,7 +23,7 @@ export function usePointer() {
   const gyroCursorSpeed = 0.6; 
 
   // 横位置計算
-  const FIXED_X_POSITION = computed(() => (window.innerWidth / 2) - 220);
+  const FIXED_X_POSITION = computed(() => (window.innerWidth / 2) - 160);
 
   // 縦位置計算
   const convertTempToYPosition = (temperature) => {
@@ -76,9 +76,9 @@ export function usePointer() {
     const centerY = window.innerHeight / 2;
     const newY = centerY + ((angleY / 25) * centerY * gyroCursorSpeed * factorY);
 
-    const MARGIN = 50;
+    const MARGIN = -25;
     const minY = convertTempToYPosition(2000) - MARGIN;
-    const maxY = convertTempToYPosition(0) + MARGIN;
+    const maxY = convertTempToYPosition(150) + MARGIN;
 
     gyroCursor.value.x = FIXED_X_POSITION.value;
     gyroCursor.value.y = Math.max(minY, Math.min(maxY, newY));

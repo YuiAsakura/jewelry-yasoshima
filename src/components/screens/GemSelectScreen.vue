@@ -25,12 +25,14 @@
       </div>
     </div>
 
+    <!--
     <div class="joycon-debug-panel">
       <div>reportId: {{ debugReportId }}</div>
       <div>buttons: {{ debugButtonsHex }}</div>
       <div>armed: {{ isJoyConInputArmed ? 'yes' : 'no' }}</div>
       <div>direction: L={{ debugDirection.left ? '1' : '0' }} R={{ debugDirection.right ? '1' : '0' }} U={{ debugDirection.up ? '1' : '0' }}</div>
     </div>
+    -->
   </div>
 </template>
 
@@ -88,6 +90,7 @@ const readDirectionFromReport = (data) => {
 let previousDirection = { left: false, right: false, up: false };
 
 const handleJoyConInputReport = (event) => {
+  /*
   debugReportId.value = `0x${event.reportId.toString(16).padStart(2, '0')}`;
   if (event.reportId !== 0x30) return;
 
@@ -99,6 +102,7 @@ const handleJoyConInputReport = (event) => {
       : 0;
   debugButtonsHex.value = `0x${buttons.toString(16).padStart(buttons > 0xff ? 6 : 2, '0')}`;
   debugDirection.value = direction;
+  */
 
   if (Date.now() < joyConInputReadyAt.value) {
     previousDirection = direction;
@@ -293,8 +297,8 @@ onBeforeUnmount(() => {
 }
 
 .gem-card-image {
-  max-width: 100px;
-  max-height: 100px;
+  max-width: 220px;
+  max-height: 220px;
   object-fit: contain;
   filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
   transition: transform 0.3s ease;

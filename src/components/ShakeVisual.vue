@@ -40,9 +40,6 @@ const toolStyle = computed(() => {
   }
 
   return {
-    // ★ ここがポイント：XとYの「両方」に同じ offset を入れることで、
-    // 左上 ⇔ 右下 の斜め軌道で均等にガシガシ往復します！
-    // (右上 ⇔ 左下にしたい場合は、片方を -offset にしてください)
     transform: `translate(calc(-50% + 40px + ${offset}px), calc(-50% - 40px + ${offset}px)) rotate(-15deg)`
   };
 });
@@ -59,8 +56,12 @@ const toolStyle = computed(() => {
 }
 
 .gem-base-image {
-  max-width: 60%;
-  max-height: 60%;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
   object-fit: contain;
   filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.15));
   z-index: 1;
@@ -68,10 +69,10 @@ const toolStyle = computed(() => {
 
 .tool-image {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 40%;
-  height: 40%;
+  top: 70%;
+  left: 45%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   z-index: 2;
   transform-origin: center;
